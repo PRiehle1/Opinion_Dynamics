@@ -285,6 +285,13 @@ class OpinionFormation(object):
                 self.prob[0,t] = self.br
                 self.prob[len(self.x)-1,t] = self.bl            
         
-        return self.prob
+        return self.prob, self.prob[:, -1]
     
+    def logL(self):
+        pass
     
+    def score(self):
+        pass
+    
+    def hessian(self):
+        pass 
