@@ -287,11 +287,3 @@ class OpinionFormation(object):
         
         return self.prob, self.prob[:, -1]
     
-    def logL(self):
-        pass
-    
-    def score(self):
-        pass
-    
-    def hessian(self):
-        pass 
