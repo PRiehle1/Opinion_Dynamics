@@ -1,6 +1,7 @@
 import numpy as np 
 from math import *
 from errors import * 
+from tqdm import tqdm
 
 class OpinionFormation(object):
     
@@ -103,7 +104,7 @@ class OpinionFormation(object):
         return self.transition_probabilitie_up(x) + self.transition_probabilitie_down(x)
     # Define the functions for the initial distribution 
     
-    def normalPDF(self, x:float,  mean: float, variance: float) -> float:
+    def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
         """
         The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
         It returns the value of probability density function for normal distribution at point x.
@@ -117,6 +118,22 @@ class OpinionFormation(object):
             float: The value of the normal pdf at a given point
         """
         return 1/np.sqrt(variance*2*np.pi) * np.exp((-1/2)*((x-mean)/np.sqrt(variance))**2)
+    
+    
+    def normalPDF_2(self, epsilon: float) -> float:
+        """
+        The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
+        It returns the value of probability density function for normal distribution at point x.
+
+        Args:
+            x (float): Represent the value of x_
+            mean (float): Mean of the Distribution
+            variance (float): Variance of the Distribution
+
+        Returns:
+            float: The value of the normal pdf at a given point
+        """
+        return 1/np.sqrt(2*np.pi) * np.exp((-1/2)*epsilon**2)
 
     def normalDistributionCDF(self, x: float) -> float: 
         """The normalDistributionCDF function takes a float x as input and returns the cumulative distribution function \
@@ -129,6 +146,44 @@ class OpinionFormation(object):
         """
   
         return (1.0 + erf(x / sqrt(2.0))) / 2.0
+    
+    def truncatednormalDistributionPDF(self, x: float, x_0:float, bound_right: float, bound_left: float) -> float: 
+        """AI is creating summary for truncatednormalDistributionPDF
+
+        Args:
+            x (float): [description]
+            bound_right (float): [description]
+            bound_left (float): [description]
+
+        Returns:
+            float: [description]
+        """
+        
+        # Initialize the Variables
+            
+        drift = self.drift(x)
+            
+        diffusion = self.diffusion(x)
+            
+        normalDist = self.normalPDF_2((x-(x_0 + drift * self.dx))/np.sqrt(diffusion* self.dx)) 
+        
+        x_1 = (bound_right-(x_0 + drift * self.dx))/np.sqrt(diffusion*self.dx)    
+        x_2 = (bound_left-(x_0 + drift * self.dx))/np.sqrt(diffusion*self.dx)
+        
+        trunormalDist = (1/np.sqrt(diffusion*self.dx)) * normalDist/(self.normalDistributionCDF(x = x_1) - self.normalDistributionCDF(x = x_2))
+        
+        return trunormalDist
+    
+    def initialDistribution(self, x:float, x_initial:float) -> np.array:
+        """ Calculates the initial distribution of the probability
+
+        Returns:
+            array: The values of the initial Probability at t=0 for every x
+        """
+            
+        x_0 = self.truncatednormalDistributionPDF(x ,x_0 = x_initial, bound_right = 1, bound_left = (-1))
+            
+        return x_0
     
     # Define the functions for the solution of the partial differential equaution
     
@@ -221,18 +276,22 @@ class OpinionFormation(object):
         
         return self.prob
 
-    def CrankNicolson(self) -> np.array:
+    def CrankNicolson(self, x_0: float) -> np.array:
         
         """ The CrankNicolson function takes in the initial conditions and sets up the 
             characteristic matrix for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
-
+       
+        Args:
+            x_0 (float): The initial condition 
+       
         Returns:
             np.array: The probability distribution at time t for every point in the domain x
         """
         
         # Draw initial Probabilities from the initial distribution
-        for i in range(1,len(self.x)-1):
-            self.prob[i,0] = self.normalPDF(self.x[i], self.drift(self.x[i]) * self.dx, self.diffusion(self.x[i])* self.dx)        
+        for i in range(0,len(self.prob)):
+            self.prob[i,0] = self.initialDistribution(x= self.x[i], x_initial = x_0)
+
         # Set the Boundary Conditions 
         self.prob[0,0] = self.bl
         self.prob[len(self.x)-1,0] = self.br
@@ -246,10 +305,22 @@ class OpinionFormation(object):
             
             if elem == 0:
                 a[elem,elem] = 1
+                a[elem,elem+1] = 1 + (self.dt/(2*self.dx)) * self.drift(self.x[elem]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
+                a[elem,elem+2] = (-self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) + (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
+                
                 b[elem,elem] = 1
+                b[elem,elem+1] = 1 - (self.dt/(2*self.dx)) * self.drift(self.x[elem]) + (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
+                b[elem,elem+2] = (self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) - (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
+            
             elif elem == len(self.prob)-1:
                 a[elem, elem] = 1
+                a[elem,elem-1] = 1 + (self.dt/(2*self.dx)) * self.drift(self.x[elem]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
+                a[elem,elem-2] = (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
+                
                 b[elem, elem] = 1
+                b[elem,elem-1] = 1 - (self.dt/(2*self.dx)) * self.drift(self.x[elem]) + (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
+                b[elem,elem-2] = (-self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
+                
             else: 
                 b[elem,elem-1] = (-self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
                 
@@ -263,10 +334,13 @@ class OpinionFormation(object):
                 
                 a[elem,elem+1] = (-self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) + (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
         
-        a_b = np.matmul(np.linalg.inv(b),a)
-        
+       
+        b_a = np.matmul(np.linalg.inv(b),a)
+        b_inv = np.linalg.inv(b)
+       
+       
         # Check the Stability
-        eigenvalues,_ = np.linalg.eig(a_b)
+        eigenvalues,_ = np.linalg.eig(b_a)
         for eig in np.abs(eigenvalues):
             if eig > 1.00000000009:              # Correction based on rounding errors
                 print(eig)
@@ -274,16 +348,13 @@ class OpinionFormation(object):
             else: pass
         
         
-        for t in range(1,len(self.t)):
+        for t in tqdm(range(1,len(self.t))):
             # Density Check
             area = self.integrate(x = self.x, y= self.prob[:,t-1])
-            if  0.99>= area or area >=1.01:           
-                raise WrongDensityValueError(area)
-            else:
-                self.prob[:,t] = np.matmul(a_b, self.prob[:,t-1])
-                # Boundary Conditions
-                self.prob[0,t] = self.br
-                self.prob[len(self.x)-1,t] = self.bl            
-        
+            if  True == False: #area <= 0.95 or area >=1.01:           
+                raise WrongDensityValueError(area, t)
+            else: 
+                self.prob[:,t] =  np.matmul(b_inv, (np.matmul(a, self.prob[:,t-1])))
+                
         return self.prob, self.prob[:, -1]
     
