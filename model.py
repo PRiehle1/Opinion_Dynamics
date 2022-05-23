@@ -2,11 +2,12 @@ import numpy as np
 from math import *
 from errors import * 
 from tqdm import tqdm
+from scipy.integrate import simps
 
 class OpinionFormation(object):
     
     # Initialize the class
-    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, deltax: float, deltat: float, bright: float, bleft: float) -> None:
+    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, deltax: float, deltat: float) -> None:
         """ Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
 
         Args:
@@ -29,13 +30,11 @@ class OpinionFormation(object):
         self.alpha1 = alpha1 
         self.dx     = deltax
         self.dt     = deltat 
-        self.br     = bright
-        self.bl     = bleft
         
         # Model Parameter to be generated
-        self.x      = np.arange(-1,1,self.dx)
-        self.t      = np.arange(0,T,self.dt)
-        self.prob   = np.zeros([len(self.x), len(self.t)])
+        self.x      = np.arange(-1,1,self.dx, dtype= 'd')
+        self.t      = np.arange(0,T,self.dt, dtype= 'd')
+        self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
     # Helper Functions
     def integrate(self, x: np.array, y: np.array):
@@ -119,7 +118,6 @@ class OpinionFormation(object):
         """
         return 1/np.sqrt(variance*2*np.pi) * np.exp((-1/2)*((x-mean)/np.sqrt(variance))**2)
     
-    
     def normalPDF_2(self, epsilon: float) -> float:
         """
         The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
@@ -148,16 +146,7 @@ class OpinionFormation(object):
         return (1.0 + erf(x / sqrt(2.0))) / 2.0
     
     def truncatednormalDistributionPDF(self, x: float, x_0:float, bound_right: float, bound_left: float) -> float: 
-        """AI is creating summary for truncatednormalDistributionPDF
-
-        Args:
-            x (float): [description]
-            bound_right (float): [description]
-            bound_left (float): [description]
-
-        Returns:
-            float: [description]
-        """
+        
         
         # Initialize the Variables
             
@@ -174,187 +163,128 @@ class OpinionFormation(object):
         
         return trunormalDist
     
-    def initialDistribution(self, x:float, x_initial:float) -> np.array:
+    def initialDistribution(self, x_initial:float, truncated: bool) -> np.array:
         """ Calculates the initial distribution of the probability
 
         Returns:
             array: The values of the initial Probability at t=0 for every x
         """
-            
-        x_0 = self.truncatednormalDistributionPDF(x ,x_0 = x_initial, bound_right = 1, bound_left = (-1))
-            
-        return x_0
+
+        dummy = np.zeros(len(self.prob))
+
+        for i in range(0,len(dummy)):
+            if truncated == True:
+                dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
+            else: 
+                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i]) * self.dx, variance= self.diffusion(self.x[i])*self.dx ) 
+        return dummy
     
     # Define the functions for the solution of the partial differential equaution
-    
-    def forwardDiffernece(self) -> np.array:
-        """ The forwardEuler function takes in a drift function, diffusion function, and initial conditions. It then uses the forward Euler method to solve for the probability distribution of a stock price at time t. 
-            The forward Euler method is an explicit finite difference scheme that approximates the solution to an initial value problem with one independent variable using linear interpolation between points on the solution curve. 
-            This particular implementation of this scheme solves for probabilities at discrete points in space (i.e., stock prices) rather than continuous values.
 
-        Returns:
-            np.array: A matrix with the probability distribution at every point in time
+    def CrankNicolson(self, x_0:float, check_stability: bool, calc_dens: bool) -> np.array:
         """
+        The CrankNicolson function takes in the initial conditions and sets up the characteristic matrix
+         for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
 
-        
-        # Draw numbers from the initial distribution
-        for i in range(1,len(self.x)-1):
-            
-            self.prob[i,0] = self.normalPDF(self.x[i], self.drift(self.x[i]) * self.dt, self.diffusion(self.x[i])* self.dt)        
-        
-        # Set the Boundary Conditions 
-        self.prob[0,0] = self.bl
-        self.prob[len(self.x)-1,0] = self.br
-        
-        # Loop over every point in time
-        for time in range(len(self.t)-1):   
-            
-            for elem in range(1,len(self.x)-1):
-    
-                self.prob[elem,time+1] = self.prob[elem,time]  - self.dt/self.dx *(self.drift(self.x[elem+1])* self.prob[elem+1,time] - self.drift(self.x[elem])* self.prob[elem,time]) \
-                    + 1/(2*self.N) * self.dt/(self.dx**2) *(self.diffusion(self.x[elem+1])* self.prob[elem+1,time] - 2*self.diffusion(self.x[elem])* self.prob[elem,time]+ self.diffusion(self.x[elem-1])* self.prob[elem-1,time])
-                                                                                                                                  
-            # Boundary Conditios
-            self.prob[0,time] = self.bl
-            self.prob[len(self.x)-1,time] = self.br
-            
-        return self.prob
-                  
-    def backwardDifference(self) -> np.array: 
-        
-        """ The backwardDifference function takes in a drift function, diffusion function, and initial conditions. 
-            It then solves the Fokker Planck PDE using the backward difference method. The output is an array of 
-            probabilities at each time step for every x value.
-
-        Returns:
-            np.array: A matrix of the probability distribution at each time step
-        """
-    
-        # Draw initial Probabilities from the initial distribution
-        for i in range(1,len(self.x)-1):
-            self.prob[i,0] = self.normalPDF(self.x[i], self.drift(self.x[i]) * self.dx, self.diffusion(self.x[i])* self.dx)        
-        # Set the Boundary Conditions 
-        self.prob[0,0] = self.bl
-        self.prob[len(self.x)-1,0] = self.br
-        
-        # Initialize the characteristical Matrix 
-        a = np.zeros([len(self.x),len(self.x)])
-        
-        for elem in range(len(self.prob)):
-            
-            if elem == 0:
-                a[elem,elem] = 1
-            elif elem == len(self.prob)-1:
-                a[elem, elem] = 1
-            else: 
-                a[elem,elem-1] = (-self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
-                a[elem,elem] = 1 - (self.dt/self.dx) * self.drift(self.x[elem]) + (self.dt/(self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                a[elem,elem+1] = (self.dt/self.dx) * self.drift(self.x[elem+1]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
-        
-        # Solve the system
-        a_inv = np.linalg.pinv(a)
-        
-        # Check the Stability
-        eigenvalues,_ = np.linalg.eig(a_inv)
-        for eig in np.abs(eigenvalues):
-            if eig > 1.0000000000002:              # Correction based on rounding errors
-                print(eig)
-                raise UnstableSolutionMethodError
-            else: pass
-        
-        # Loop through all time steps    
-        for t in range(1,len(self.t)):
-            # Density Check
-            area = self.integrate(x = self.x, y= self.prob[:,t-1])
-            if  0.99>= area or area >=1.01:                               # Check up to which value the integration is a valid approximation  
-                raise WrongDensityValueError(area)
-            else:            
-                self.prob[:,t] = np.matmul(a_inv, self.prob[:,t-1])
-                # Boundary Conditions
-                self.prob[0,t] = self.br
-                self.prob[len(self.x)-1,t] = self.bl            
-        
-        return self.prob
-
-    def CrankNicolson(self, x_0: float) -> np.array:
-        
-        """ The CrankNicolson function takes in the initial conditions and sets up the 
-            characteristic matrix for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
-       
         Args:
             x_0 (float): The initial condition 
-       
+            check_stability (bool): Check the stability of the flow matrix
+            calc_dens (bool): Calculate the total Density
+
+        Raises:
+            UnstableSolutionMethodError: Raises if the Solution is not stable
+            WrongDensityValueError: Raises if the Area is lower than some eps 
+
         Returns:
             np.array: The probability distribution at time t for every point in the domain x
         """
-        
-        # Draw initial Probabilities from the initial distribution
-        for i in range(0,len(self.prob)):
-            self.prob[i,0] = self.initialDistribution(x= self.x[i], x_initial = x_0)
 
-        # Set the Boundary Conditions 
-        self.prob[0,0] = self.bl
-        self.prob[len(self.x)-1,0] = self.br
-        
-        # Initialize the characteristical Matrix 
-        a = np.zeros([len(self.x),len(self.x)])
-        b = np.zeros([len(self.x),len(self.x)])
-        
-        
-        for elem in range(len(self.prob)):
+        # Fixed Parametes and Vecotors 
+        dx = self.dx
+        dt = self.dt 
+        x = self.x
+        t = self.t 
+        N = self.N 
+        prob = self.prob
+
+        par_drift = (-1/N)
+        par_diffusion = 1/(2*(N**2))
+
+        # Initialize the Matrix for the solver 
+        a = np.zeros([len(x), len(x)])
+        b = np.zeros([len(x), len(x)])
+
+
+
+        # Fill the matrices
+        for elem in range(len(x)):
+            drift_diag_a = 1 + dt/(2*dx) * par_drift * self.drift(x[elem]) + dt/(dx**2) * par_diffusion * self.diffusion(x[elem])
+            drift_diag_b = 1 - dt/(2*dx) * par_drift * self.drift(x[elem]) - dt/(dx**2) * par_diffusion * self.diffusion(x[elem])
             
             if elem == 0:
-                a[elem,elem] = 1
-                a[elem,elem+1] = 1 + (self.dt/(2*self.dx)) * self.drift(self.x[elem]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                a[elem,elem+2] = (-self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) + (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
-                
-                b[elem,elem] = 1
-                b[elem,elem+1] = 1 - (self.dt/(2*self.dx)) * self.drift(self.x[elem]) + (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                b[elem,elem+2] = (self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) - (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
+                a[elem, elem] = drift_diag_a
+                a[elem, elem+1] = (-1) * (dt/(2*dx) * par_drift * self.drift(x[elem+1]) + dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem+1]))
+
+                b[elem, elem] = drift_diag_b
+                b[elem, elem+1] = dt/(2*dx) * par_drift * self.drift(x[elem+1]) + dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem+1])
             
-            elif elem == len(self.prob)-1:
-                a[elem, elem] = 1
-                a[elem,elem-1] = 1 + (self.dt/(2*self.dx)) * self.drift(self.x[elem]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                a[elem,elem-2] = (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
-                
-                b[elem, elem] = 1
-                b[elem,elem-1] = 1 - (self.dt/(2*self.dx)) * self.drift(self.x[elem]) + (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                b[elem,elem-2] = (-self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
-                
-            else: 
-                b[elem,elem-1] = (-self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
-                
-                b[elem,elem] = 1 - (self.dt/(2*self.dx)) * self.drift(self.x[elem]) + (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                
-                b[elem,elem+1] = (self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) - (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
-                
-                a[elem,elem-1] = (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem-1])
-                
-                a[elem,elem] = 1 + (self.dt/(2*self.dx)) * self.drift(self.x[elem]) - (self.dt/(2*self.N*self.dx**2)) * self.diffusion(self.x[elem])
-                
-                a[elem,elem+1] = (-self.dt/(2*self.dx)) * self.drift(self.x[elem+1]) + (self.dt/(4*self.N*self.dx**2)) * self.diffusion(self.x[elem+1])
-        
-       
-        b_a = np.matmul(np.linalg.inv(b),a)
-        b_inv = np.linalg.inv(b)
-       
-       
-        # Check the Stability
-        eigenvalues,_ = np.linalg.eig(b_a)
-        for eig in np.abs(eigenvalues):
-            if eig > 1.00000000009:              # Correction based on rounding errors
-                print(eig)
+            elif elem == len(x)-1:
+                a[elem,elem-1] = (-1)* dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem-1])
+                a[elem, elem] = drift_diag_a
+ 
+
+                b[elem,elem-1] = dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem-1])
+                b[elem, elem] = drift_diag_b
+                            
+
+            else:                 
+                a[elem,elem-1] = (-1)* dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem-1])
+                a[elem, elem] = drift_diag_a
+                a[elem, elem+1] = (-1) * (dt/(2*dx) * par_drift * self.drift(x[elem+1]) + dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem+1]))  
+
+                b[elem,elem-1] = dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem-1])
+                b[elem, elem] = drift_diag_b
+                b[elem, elem+1] = dt/(2*dx) * par_drift * self.drift(x[elem+1]) + dt/(2*(dx**2)) * par_diffusion * self.diffusion(x[elem+1]) 
+        # Inverse of the Matrix 
+        a_b = np.matmul(np.linalg.inv(a),b)
+
+        # Check the Stability of the Matrix
+        if check_stability == True:
+            eigenvalues,_ = np.linalg.eig(a_b)
+            if np.abs(eigenvalues).max() > 1.00000000009:             
+                print(np.abs(eigenvalues).max())
                 raise UnstableSolutionMethodError
-            else: pass
+        else: pass
+
+
+        # Initial Distribution 
+        prob[:,0] = self.initialDistribution(x_0, truncated= True)
+
         
+        # Calulation of the Probability Flow with optional Density Calculation and Analysis
+        if calc_dens == True:
+            area = np.zeros(len(self.t))
+            for t in tqdm(range(1,len(self.t))): 
+                area[t] = simps(self.prob[:,t-1], x = self.x)
+                if  area[t] <= 0.95 or area[t-1] >=1.05:           
+                    raise WrongDensityValueError(area, t)
+                else: 
+                    self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
+            return area, self.prob, self.prob[:, -1]
+        else: 
+            for t in tqdm(range(1,len(self.t))):
+                self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+            return self.prob, self.prob[:, -1] 
         
-        for t in tqdm(range(1,len(self.t))):
-            # Density Check
-            area = self.integrate(x = self.x, y= self.prob[:,t-1])
-            if  True == False: #area <= 0.95 or area >=1.01:           
-                raise WrongDensityValueError(area, t)
-            else: 
-                self.prob[:,t] =  np.matmul(b_inv, (np.matmul(a, self.prob[:,t-1])))
-                
-        return self.prob, self.prob[:, -1]
+            
+
+
+
+
+
+
+
+
+
+    
     
