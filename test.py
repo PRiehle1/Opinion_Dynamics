@@ -1,14 +1,35 @@
 import model
 import plot 
+import sim
+import matplotlib.pyplot as plt 
+import numpy as np
+
+#######################################################################################################################################
+#  Plot the transitional Density 
+#######################################################################################################################################
 
 
-test = model.OpinionFormation(N = 50, T = 100, nu = 3, alpha0 = 0, alpha1 = 1.2, deltax = 0.001, deltat = 0.01, bright = 0, bleft = 0) 
-prob,prob_end = test.CrankNicolson(x_0 = (-0.9))
+#test = model.OpinionFormation(N = 50, T = 300, nu = 3, alpha0 = 0.00, alpha1 = 1.2, deltax = 0.0025, deltat = 0.01) #
 
-plot_1 = plot.Plotting(param = prob, x = test.x, t = test.t)
-plot_1.surface_plot()
+#prob_2,prob_end_2 = test.CrankNicolson(x_0 = 0.99, check_stability=False, calc_dens= False)
 
+
+#plot_2 = plot.Plotting(param = prob_2, x = test.x, t = test.t)
+#plot_2.surface_plot()
+
+
+#######################################################################################################################################
 # Generate Pseudo Time Series
+#######################################################################################################################################
 
+simulation = sim.simulateModel(N = 21.21, T = 180, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 0.01)
+d = simulation.eulermm(0)
 
+plot = plot.Plotting2D(np.arange(0, simulation.T, 1), d)
+plot.sim_plot()
 
+print(d)
+
+#######################################################################################################################################
+#
+#######################################################################################################################################
