@@ -118,6 +118,7 @@ class OpinionFormation(object):
         """
         return 1/np.sqrt(variance*2*np.pi) * np.exp((-1/2)*((x-mean)/np.sqrt(variance))**2)
     
+
     def normalPDF_2(self, epsilon: float) -> float:
         """
         The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
@@ -208,7 +209,7 @@ class OpinionFormation(object):
         prob = self.prob
 
         par_drift = (-1/N)
-        par_diffusion = 1/(2*(N**2))
+        par_diffusion =1/(2*(N**2))
 
         # Initialize the Matrix for the solver 
         a = np.zeros([len(x), len(x)])
@@ -272,8 +273,10 @@ class OpinionFormation(object):
                     self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
             return area, self.prob, self.prob[:, -1]
         else: 
+            x = np.zeros(len(self.t))
             for t in tqdm(range(1,len(self.t))):
                 self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+                x[t] = np.matmul(self.prob[:,t]/np.sum(self.prob[:,t]), self.x)
             return self.prob, self.prob[:, -1] 
         
             

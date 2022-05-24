@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 
-class Plotting(object):
+class Plotting3D(object):
     
     def __init__(self, param: np.array, x: np.array, t:np.array):
         """_summary_
@@ -31,4 +31,19 @@ class Plotting(object):
         
         ax.view_init(20,120)
 
+        plt.show()
+
+class Plotting2D(object):
+
+    def __init__(self, x : np.array, y: np.array) -> None:
+        self.x = x
+        self.y = y
+          
+    def sim_plot(self):
+        
+        fig, ax = plt.subplots()
+        ax.plot(self.x,self.y)
+        ax.set(xlabel='t', ylabel='y',
+            title='Euler-Maruyama-Method for simulation of the canonical social model ')
+        ax.grid()
         plt.show()
