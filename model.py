@@ -1,7 +1,6 @@
 import numpy as np 
 from math import *
 from errors import * 
-from tqdm import tqdm
 from scipy.integrate import simps
 
 class OpinionFormation(object):
@@ -32,7 +31,7 @@ class OpinionFormation(object):
         self.dt     = deltat 
         
         # Model Parameter to be generated
-        self.x      = np.arange(-1,1,self.dx, dtype= 'd')
+        self.x      = np.around(np.arange(-1,1,self.dx, dtype= 'd'), decimals=3 )
         self.t      = np.arange(0,T,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
@@ -62,7 +61,7 @@ class OpinionFormation(object):
             float: Transition Probability for a movement upward
         """
         
-        return self.nu * (1-x) * np.exp(self.alpha0 + self.alpha1 * x)
+        return self.nu * (1-x) * np.exp(self.alpha0 + self.alpha1 * x) * self.N 
     
     def transition_probabilitie_down(self, x: float) -> float:
         """ Calculates the Transition Probability for the whole socio-configuration to move downward
@@ -74,7 +73,7 @@ class OpinionFormation(object):
             float: Transition Probability for a movement downward
         """
         
-        return self.nu * (1+x) * np.exp(-1*(self.alpha0 + self.alpha1 * x))
+        return self.nu * (1+x) * np.exp(-1*(self.alpha0 + self.alpha1 * x)) * self.N 
     
     def drift(self, x: float) -> float:
         """
@@ -87,7 +86,7 @@ class OpinionFormation(object):
             float: The drift value
         """
         
-        return self.transition_probabilitie_up(x) - self.transition_probabilitie_down(x)
+        return (self.transition_probabilitie_up(x) - self.transition_probabilitie_down(x))
     
     def diffusion(self, x: float) -> float:
         
@@ -100,7 +99,7 @@ class OpinionFormation(object):
             float: The output from the diffusion function
         
         """
-        return self.transition_probabilitie_up(x) + self.transition_probabilitie_down(x)
+        return (self.transition_probabilitie_up(x) + self.transition_probabilitie_down(x))
     # Define the functions for the initial distribution 
     
     def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
@@ -151,16 +150,16 @@ class OpinionFormation(object):
         
         # Initialize the Variables
             
-        drift = self.drift(x)
+        drift = 1/self.N*self.drift(x) 
             
-        diffusion = self.diffusion(x)
+        diffusion = 1/(self.N**2)* self.diffusion(x)
             
-        normalDist = self.normalPDF_2((x-(x_0 + drift * self.dx))/np.sqrt(diffusion* self.dx)) 
+        normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
         
-        x_1 = (bound_right-(x_0 + drift * self.dx))/np.sqrt(diffusion*self.dx)    
-        x_2 = (bound_left-(x_0 + drift * self.dx))/np.sqrt(diffusion*self.dx)
+        x_1 = (bound_right-(x_0 + drift * self.dt))/np.sqrt(diffusion*self.dt)    
+        x_2 = (bound_left-(x_0 + drift * self.dt))/np.sqrt(diffusion*self.dt)
         
-        trunormalDist = (1/np.sqrt(diffusion*self.dx)) * normalDist/(self.normalDistributionCDF(x = x_1) - self.normalDistributionCDF(x = x_2))
+        trunormalDist = (1/np.sqrt(diffusion*self.dt)) * normalDist/(self.normalDistributionCDF(x = x_1) - self.normalDistributionCDF(x = x_2))
         
         return trunormalDist
     
@@ -177,7 +176,7 @@ class OpinionFormation(object):
             if truncated == True:
                 dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
             else: 
-                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i]) * self.dx, variance= self.diffusion(self.x[i])*self.dx ) 
+                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + 1/self.N* self.drift(x = self.x[i]) * self.dt, variance= 1/(self.N**2)* self.diffusion(self.x[i])*self.dt ) 
         return dummy
     
     # Define the functions for the solution of the partial differential equaution
@@ -208,7 +207,7 @@ class OpinionFormation(object):
         N = self.N 
         prob = self.prob
 
-        par_drift = (-1/N)
+        par_drift = -1/N
         par_diffusion =1/(2*(N**2))
 
         # Initialize the Matrix for the solver 
@@ -265,19 +264,20 @@ class OpinionFormation(object):
         # Calulation of the Probability Flow with optional Density Calculation and Analysis
         if calc_dens == True:
             area = np.zeros(len(self.t))
-            for t in tqdm(range(1,len(self.t))): 
+            for t in range(1,len(self.t)): 
                 area[t] = simps(self.prob[:,t-1], x = self.x)
-                if  area[t] <= 0.95 or area[t-1] >=1.05:           
-                    raise WrongDensityValueError(area, t)
+                if  area[t] <= area[1] - 0.05 or area[t-1] >= area[1] + 0.05:           
+                    raise WrongDensityValueError(area[t], t)
                 else: 
                     self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
             return area, self.prob, self.prob[:, -1]
         else: 
             x = np.zeros(len(self.t))
-            for t in tqdm(range(1,len(self.t))):
+            for t in range(1,len(self.t)):
                 self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
-                x[t] = np.matmul(self.prob[:,t]/np.sum(self.prob[:,t]), self.x)
-            return self.prob, self.prob[:, -1] 
+
+
+            return self.prob, self.prob[:, -1]
         
             
 
