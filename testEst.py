@@ -25,9 +25,9 @@ plt.show()
 from scipy.optimize import fmin
 
 
-def logL(guess, deltax = 0.0025, deltat = 1/16, T = 3, N = 175):
+def logL(guess, deltax = 0.002, deltat = 1/16, T = 3):
     y = X_train
-    nu , alpha0, alpha1,  = guess
+    nu , alpha0, alpha1, N   = guess
     print("The actual guess is: " +str(guess))
 
     test = model.OpinionFormation(N, T, nu , alpha0, alpha1, deltax, deltat)
@@ -44,7 +44,8 @@ def logL(guess, deltax = 0.0025, deltat = 1/16, T = 3, N = 175):
         
         for i in range(len(test.x)):
             if test.x[i] == dum[elem+1]:
-                logf[numRun] = np.log(prob_end[i])
+                logf[numRun] = np.log(prob_end[i]*100)
+        
         numRun +=1
     
     print(-np.sum(logf))
@@ -54,4 +55,4 @@ def print_fun(x):
     print("Current value: {}".format(x))
 
 bounds = [(0,5), (0, 0.1), (0, 2)]
-res = fmin(logL, (1, 0.1, 0.99), disp = True, retall = True)  #,  method='Nelder-Mead',callback=print_fun,options={'return_all': True, 'adaptive': True})
+res = fmin(logL, (0.15, 0.01, 0.99, 21.21), disp = True, retall = True)  #,  method='Nelder-Mead',callback=print_fun,options={'return_all': True, 'adaptive': True})
