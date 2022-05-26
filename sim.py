@@ -4,7 +4,7 @@ import model
 import numpy as np 
 from tqdm import tqdm
 
-class simulateModel(model.OpinionFormation):
+class Simulation(model.OpinionFormation):
 
     def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, deltax: float, deltat: float, seed) -> None: 
         """
@@ -12,7 +12,7 @@ class simulateModel(model.OpinionFormation):
 
         Args:
             N (int): Number of Agents
-            T (int): Total Amount of Time
+            T (int): Total Amount of Time Steps
             nu (float): Flexibility Parameter
             alpha0 (float): Preference Parameter
             alpha1 (float): Adaptation Parameter
@@ -27,7 +27,6 @@ class simulateModel(model.OpinionFormation):
         super().__init__(N, T, nu, alpha0, alpha1, deltax, deltat) 
         self.seed = seed
         
-    
     def eulermm(self, ic: float)    -> np.array: 
         """
         The eulermm function takes in a drift and diffusion function, as well as an initial condition. 
@@ -41,31 +40,23 @@ class simulateModel(model.OpinionFormation):
         Return: 
             np.array: A vector of length t with the simulated paths
         """
-       
-        
-
-        dt=self.dt
-        t = self.t
-        NumTstep = t.size
+        dt=self.dt, t = self.t, NumTstep = t.size
 
         sqrtdt = np.sqrt(dt)
         dummy = np.zeros(NumTstep)
         dummy[0] = ic
 
-        d = np.zeros(self.T)
-        d[0] = ic
+        est = np.zeros(self.T)
+        est[0] = ic
         a = np.arange(0, self.T/ self.dt, step = 1/ self.dt)
-
-
 
         for i in range(1,NumTstep):
              # Set Random Seed
             np.random.seed(self.seed+i)
             dummy[i] = dummy[i-1] + (1/self.N*self.drift(dummy[i-1])) * dt + (np.sqrt(1/(self.N**2)*self.diffusion(dummy[i-1])))*np.random.normal(loc=0.0,scale=sqrtdt)
-
             # Take only the values at the integer t values 
             if i in a: 
-                d[int(i*self.dt)] = dummy[i]
-        
-        return d
+                est[int(i*self.dt)] = dummy[i]  
+       
+        return est
 

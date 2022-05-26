@@ -11,14 +11,21 @@ import random
 #######################################################################################################################################
 
 
-#test = model.OpinionFormation(N = 50, T = 30, nu = 1, alpha0 = 0.00, alpha1 = 1.2, deltax = 0.001, deltat = 0.01) #
-#test_1 = model.OpinionFormation(N = 50, T = 30, nu = 2, alpha0 = 0.00, alpha1 = 1.2, deltax = 0.001, deltat = 0.01)
-test_2 = model.OpinionFormation(N = 175, T = 3, nu = 1, alpha0 = 0.1, alpha1 = 0.99, deltax = 0.002, deltat = 1/16)
+test = model.OpinionFormation(N = 175, T = 10, nu = 3, alpha0 = 0.0, alpha1 = 1.2, deltax = 0.002, deltat = 1/16) #
+test_1 = model.OpinionFormation(N = 175, T = 10, nu = 3, alpha0 = 0.0, alpha1 = 1.2, deltax = 0.002, deltat = 1/16)
+test_2 = model.OpinionFormation(N = 175, T = 10, nu = 3, alpha0 = 0.0, alpha1 = 1.2, deltax = 0.002, deltat = 1/16)
 
-#_,prob_end = test.CrankNicolson(x_0 = 0, check_stability=False, calc_dens= False)
-#_,prob_end_1 = test_1.CrankNicolson(x_0 = 0, check_stability=False, calc_dens= False)
-area, prob_2,prob_end_2 = test_2.CrankNicolson(x_0 = -0.59, check_stability=True, calc_dens= True)
-print(prob_2.min())
+prob,prob_end = test.CrankNicolson(x_0 = -0.1, check_stability=False, calc_dens= False)
+prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = 0.1, check_stability=False, calc_dens= False)
+area, prob_2,prob_end_2 = test_2.CrankNicolson(x_0 = 0, check_stability=True, calc_dens= True)
+
+
+plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
+plot_0.surface_plot()
+
+plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+plot_1.surface_plot()
+
 plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
 plot_2.surface_plot()
 

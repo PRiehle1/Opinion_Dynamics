@@ -14,8 +14,6 @@ import pandas as pd
 #simulation = sim.simulateModel(N = 50, T = 200, nu = 3 , alpha0 = 0.00, alpha1 = 1.2, deltax = 1/50, deltat = 0.01,seed= 15)
 #d = simulation.eulermm(0)
 
-
-
 training_data_x = pd.read_excel("zew.xlsx", header=None)
 X_train= training_data_x[1].to_numpy()
 X_train= X_train[~np.isnan(X_train)]
