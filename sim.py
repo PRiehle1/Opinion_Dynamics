@@ -40,7 +40,9 @@ class Simulation(model.OpinionFormation):
         Return: 
             np.array: A vector of length t with the simulated paths
         """
-        dt=self.dt, t = self.t, NumTstep = t.size
+        dt=self.dt
+        t = self.t
+        NumTstep = t.size
 
         sqrtdt = np.sqrt(dt)
         dummy = np.zeros(NumTstep)
@@ -53,7 +55,7 @@ class Simulation(model.OpinionFormation):
         for i in range(1,NumTstep):
              # Set Random Seed
             np.random.seed(self.seed+i)
-            dummy[i] = dummy[i-1] + (1/self.N*self.drift(dummy[i-1])) * dt + (np.sqrt(1/(self.N**2)*self.diffusion(dummy[i-1])))*np.random.normal(loc=0.0,scale=sqrtdt)
+            dummy[i] = dummy[i-1] + (self.drift(dummy[i-1])) * dt + (np.sqrt(self.diffusion(dummy[i-1])))*np.random.normal(loc=0.0,scale=sqrtdt)
             # Take only the values at the integer t values 
             if i in a: 
                 est[int(i*self.dt)] = dummy[i]  
