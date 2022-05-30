@@ -11,11 +11,12 @@ import random
 #######################################################################################################################################
 
 
-test = model.OpinionFormation(N = 50, T = 3, nu = 3, alpha0 = 0.001, alpha1 = 1.2, deltax = 0.0025, deltat = 1/16) #
-test_1 = model.OpinionFormation(N = 50, T = 3, nu = 3, alpha0 = 0.001, alpha1 = 1.2, deltax = 0.0025, deltat = 1/16)
-test_2 = model.OpinionFormation(N = 50, T = 3, nu = 3, alpha0 = 0.001, alpha1 = 1.2, deltax = 0.0025, deltat = 1/16)
+test = model.OpinionFormation(N = 158.44701634, T = 10, nu = 0.84119542, alpha0 = 0.16001432, alpha1 = 0.77629832, deltax = 0.01, deltat = 1/16) #
 
-area, prob,prob_end = test.CrankNicolson(x_0 = 0.4,calc_dens= True, converged= False)
+test_1 = model.OpinionFormation(N = 158.44701634, T = 20, nu = 0.84119542, alpha0 = 0.16001432, alpha1 = 0.77629832, deltax = 0.01, deltat = 1/16)
+test_2 = model.OpinionFormation(N = 158.44701634, T = 20, nu = 0.84119542, alpha0 = 0.16001432, alpha1 = 0.77629832, deltax = 0.01, deltat = 1/16)
+
+prob,prob_end = test.CrankNicolson(x_0 = 0,calc_dens= False, converged= False)
 prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = -0.4, converged= False)
 prob_2,prob_end_2 = test_2.CrankNicolson(x_0 = 0, converged= False)
 

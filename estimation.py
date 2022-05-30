@@ -2,7 +2,7 @@
 from tqdm import tqdm
 import numpy as np
 import model
-from scipy.optimize import minimize
+from scipy.optimize import minimize, dual_annealing
 import matplotlib.pyplot as plt
 
 import multiprocessing as mp
@@ -32,12 +32,12 @@ class Estimation(object):
         time_series = self.time_series
     
         # Parameters to be estimated
-        nu, alpha0, alpha1 = guess
+        nu, alpha0, alpha1, N = guess
 
         print("The actual guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = 175, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, deltax= 0.01, deltat= 1/16)
+        mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, deltax= 0.01, deltat= 1/16)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
@@ -55,9 +55,9 @@ class Estimation(object):
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2):
-                        logf[elem] = (-1)* np.log(pdf[elem,x])
-            logL = np.sum(logf)
+                    if mod.x[x] == np.around(time_series[elem+1],3):
+                        logf[elem] = np.log(pdf[elem,x])
+            logL = (-1)* np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
         
         else: 
@@ -69,20 +69,27 @@ class Estimation(object):
 
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],3):
-                        logf[elem] = (-1)* np.log(np.abs(pdf[x]))
+                    if mod.x[x] == np.around(time_series[elem+1],2):
+                        logf[elem] = np.log((pdf[x]))
         
-            logL = np.sum(logf)
+            logL = (-1)* np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
 
         return logL
     
-    def solver(self):
-        pass
+    def solver_BFGS(self, initial_guess: list):
+        
+        # Unpack the inital guess
+        nu, alpha0, alpha1, N = initial_guess
+
+        # Minimite the negative Log Likelihood Function
+        res = minimize(self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
+        print(res)
 
 if __name__ == '__main__':
     import pandas as pd
     import sim
+    from sympy import *
 
     training_data_x = pd.read_excel("zew.xlsx", header=None)
     X_train= training_data_x[1].to_numpy()
@@ -90,11 +97,16 @@ if __name__ == '__main__':
     plt.plot(X_train)
     plt.show()
 
-    simulation = sim.Simulation(N = 200, T = 200, nu = 3 , alpha0 = 0, alpha1 = 1.2, deltax = 0.02, deltat = 0.01, seed = 150)
+    simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
     d = simulation.eulermm(-0.59)
     plt.plot(d)
     plt.show()
 
+    est = Estimation(X_train, multiprocess= False)
+    #est.solver_BFGS((0.15, 0.09, 0.99, 21))
+    res = dual_annealing(est.logL, bounds = [(0.01, 1), (-0.09, 0.3), ( 0.1, 2), (10, 40)])
 
-    est = Estimation(d, multiprocess= False)
-    res = minimize(est.logL, (3, 0.01 , 1.19), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
+
+
+
+

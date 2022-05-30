@@ -273,6 +273,7 @@ class OpinionFormation(object):
 
         # Initial Distribution 
         prob[:,0] = self.initialDistribution(x_0, truncated= True)
+        #prob[:,0] = prob[:,0]/ np.sum(prob[:,0])
 
         # Calulation of the Probability Flow with optional Density Calculation and Analysis
         if calc_dens == True:
