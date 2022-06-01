@@ -1,14 +1,9 @@
-# Import Packages 
-from tqdm import tqdm
+# Packages 
 import numpy as np
 import model
-from scipy.optimize import minimize, dual_annealing
-import matplotlib.pyplot as plt
-
+from tqdm import tqdm 
 import multiprocessing as mp
 
-
-# Define the class 
 
 class Estimation(object):
     
@@ -30,6 +25,7 @@ class Estimation(object):
         Returns:
             np.array: The sum of the logarithm of the density function at each point
         """
+        self.guess = guess
         # Times Series to be estimated
         time_series = self.time_series
     
@@ -79,14 +75,59 @@ class Estimation(object):
 
         return logL
     
-    def solver_BFGS(self, initial_guess: list):
+    def gradient(self, guess_initial, eps: float):
         
-        # Unpack the inital guess
-        nu, alpha0, alpha1, N = initial_guess
+        # Convert the gues tuple to list
+        guess_in = list(guess_initial)
+        
+        # Initialize the Gradient Column Vector
+        g = np.zeros([4,1]) # The Gradient is a column vector
 
-        # Minimite the negative Log Likelihood Function
-        res = minimize(self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
-        print(res)
+        # Log Likelihood of the guess
+        logL = self.logL(guess_in)
+        
+        guess = guess_in.copy()
+        
+        for param in range(len(guess_in)):
+            guess[param] = guess[param] + eps 
+            g[param] = (self.logL(guess) - logL)/ eps
+            guess = guess_in.copy()
+        
+        return g
+    
+    def cov_matrix(self, g):
+        
+        r_t = len(self.time_series)**2 * np.dot(g,g.T)
+        
+        return r_t
+        
+    def bhhh(self, initial_guess, tolerance_level, max_iter):
+              
+        # Calculate the Gradient
+        g = self.gradient(initial_guess, eps = 0.00001)
+        
+        # Calculate the Variance Covariance Matrix
+        r_t = self.cov_matrix(g)
+        
+        # Calculate the direction vector
+        direc = np.dot(np.linalg.inv(r_t),g)
+        
+        # Check for convergence
+        dum = np.zeros(len(direc))
+        for elem in range(len(direc)):
+            dum[elem] = np.abs(direc[elem])/ max((1, np.abs(initial_guess[elem])))
+        
+        if max(dum) < tolerance_level:
+            print(" Final Estimate")
+        
+        lamb =  1
+        # Calculate the Lambda
+        nu = (self.logL((initial_guess + lamb * direc)) - self.logL(initial_guess))/lamb * direc.T * g 
+        
+        print("Hello Wolrd")
+        
+            
+        
 
 if __name__ == '__main__':
     import pandas as pd
@@ -96,19 +137,8 @@ if __name__ == '__main__':
     training_data_x = pd.read_excel("zew.xlsx", header=None)
     X_train= training_data_x[1].to_numpy()
     X_train= X_train[~np.isnan(X_train)]
-    plt.plot(X_train)
-    plt.show()
-
-    simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
-    d = simulation.eulermm(-0.59)
-    plt.plot(d)
-    plt.show()
-
+    
     est = Estimation(X_train, multiprocess= False)
-    est.solver_BFGS((0.15, 0.09, 0.99, 21))
-    #res = dual_annealing(est.logL, bounds = [(0.01, 1), (-0.09, 0.3), ( 0.1, 2), (10, 40)])
-
-
-
-
-
+    est.bhhh((1,0,1.2,20), tolerance_level= 0.00000001, max_iter = 10000)
+        
+        
