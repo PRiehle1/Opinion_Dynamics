@@ -87,19 +87,19 @@ class Estimation(object):
         g = np.zeros([4,1]) # The Gradient is a column vector
 
         # Log Likelihood of the guess
-        #logL = self.logL(guess_in)
+        logL = self.logL(guess_in)
         
         guess_r = guess_in.copy()
-        guess_l = guess_in.copy()
+        #guess_l = guess_in.copy()
         
         for param in range(len(guess_in)):
             guess_r[param] = guess_r[param] + eps 
-            guess_l[param] = guess_l[param] - eps
+            #guess_l[param] = guess_l[param] - eps
 
-            g[param] = (self.logL(guess_r) - self.logL(guess_l))/(2*eps)
+            g[param] = (self.logL(guess_r) - logL)/(eps)
             
             guess_r = guess_in.copy()
-            guess_l = guess_in.copy()
+            #guess_l = guess_in.copy()
         
         return g
     
@@ -116,7 +116,7 @@ class Estimation(object):
         ###########################
 
         # Calculate the initial Gradient
-        g_in = self.gradient(initial_guess, eps = 0.00001)
+        g_in = self.gradient(initial_guess, eps = 0.000001)
         
         # Calculate the initial Variance Covariance Matrix
         r_t_in = self.cov_matrix(g_in)
@@ -127,7 +127,7 @@ class Estimation(object):
             pass
         else: 
             print("Covariance Matrix is singular ")
-            r_t_in = np.array([[100000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 100000, 0], [0, 0, 0, 100000]])
+            r_t_in = np.array([[10000, 0, 0, 0], [0, 10000, 0, 0], [0, 0, 10000, 0], [0, 0, 0, 1]])
         
         # Calculate the initial direction vector
         direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(4,)
@@ -146,7 +146,7 @@ class Estimation(object):
             else:
                 
                 # Calculate the Gradient
-                g = self.gradient(tuple(beta), eps = 0.00001)
+                g = self.gradient(tuple(beta), eps = 0.000001)
                 
                 # Calculate the initial Variance Covariance Matrix
                 r_t = self.cov_matrix(g)
@@ -157,7 +157,7 @@ class Estimation(object):
                     pass
                 else: 
                     print("Covariance Matrix is singular ")
-                    r_t = np.array([[100000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 100000, 0], [0, 0, 0, 100000]])
+                    r_t = np.array([[10000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 10000, 0], [0, 0, 0, 1]])
                 
                 # Calculate the initial direction vector
                 direc = np.dot(np.linalg.inv(r_t),g).reshape(4,)
@@ -202,6 +202,6 @@ if __name__ == '__main__':
     X_train= X_train[~np.isnan(X_train)]
     
     est = Estimation(X_train, multiprocess= False)
-    est.bhhh((0.7,0.3,0.7,35), tolerance_level= 0.00000001, max_iter = 10000)
+    est.bhhh((0.7,0.3,0.7,35), tolerance_level= 0.000000001, max_iter = 10000)
         
         
