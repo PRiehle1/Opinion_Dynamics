@@ -86,7 +86,8 @@ class Estimation(object):
 
         # Minimite the negative Log Likelihood Function
         res = minimize(self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
-        print(res)
+        
+        return res
 
 if __name__ == '__main__':
     import pandas as pd
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     plt.plot(d)
     plt.show()
 
-    est = Estimation(X_train, multiprocess= False)
+    est = Estimation(d, multiprocess= False)
     est.solver_BFGS((0.15, 0.09, 0.99, 21))
     #res = dual_annealing(est.logL, bounds = [(0.01, 1), (-0.09, 0.3), ( 0.1, 2), (10, 40)])
 

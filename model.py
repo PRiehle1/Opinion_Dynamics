@@ -18,8 +18,6 @@ class OpinionFormation(object):
             alpha1 (float): Adaptation Parameter
             deltax (float): Discretization in space
             deltat (float): Discretization in time
-            bright (float): Boundary condition right
-            bleft (float):  Boundary condition left
         """
         
         # Model input Parameter

@@ -1,4 +1,5 @@
 # Packages 
+from matplotlib.cbook import delete_masked_points
 import numpy as np
 import model
 from tqdm import tqdm 
@@ -25,7 +26,7 @@ class Estimation(object):
         Returns:
             np.array: The sum of the logarithm of the density function at each point
         """
-        self.guess = guess
+        #self.guess = guess
         # Times Series to be estimated
         time_series = self.time_series
     
@@ -60,7 +61,7 @@ class Estimation(object):
         
         else: 
         
-            for elem in tqdm(range(len(time_series)-1)):
+            for elem in (range(len(time_series)-1)):    #TQDM
 
                 # Solve the Fokker Plank Equation: 
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
@@ -70,12 +71,14 @@ class Estimation(object):
                     if mod.x[x] == np.around(time_series[elem+1],2):
                         logf[elem] = np.log((pdf[x]))
         
-            logL = (-1)* np.sum(logf)
-            print("The Log Likelihood is: " + str(logL)) 
+            logL = np.sum(logf)
+            #print("The Log Likelihood is: " + str(logL)) 
 
         return logL
     
     def gradient(self, guess_initial, eps: float):
+
+        print("Calculate the Gradient")
         
         # Convert the gues tuple to list
         guess_in = list(guess_initial)
@@ -84,51 +87,111 @@ class Estimation(object):
         g = np.zeros([4,1]) # The Gradient is a column vector
 
         # Log Likelihood of the guess
-        logL = self.logL(guess_in)
+        #logL = self.logL(guess_in)
         
-        guess = guess_in.copy()
+        guess_r = guess_in.copy()
+        guess_l = guess_in.copy()
         
         for param in range(len(guess_in)):
-            guess[param] = guess[param] + eps 
-            g[param] = (self.logL(guess) - logL)/ eps
-            guess = guess_in.copy()
+            guess_r[param] = guess_r[param] + eps 
+            guess_l[param] = guess_l[param] - eps
+
+            g[param] = (self.logL(guess_r) - self.logL(guess_l))/(2*eps)
+            
+            guess_r = guess_in.copy()
+            guess_l = guess_in.copy()
         
         return g
     
     def cov_matrix(self, g):
         
-        r_t = len(self.time_series)**2 * np.dot(g,g.T)
+        r_t = (len(self.time_series)**2) * np.dot(g,g.T)
         
         return r_t
         
     def bhhh(self, initial_guess, tolerance_level, max_iter):
-              
-        # Calculate the Gradient
-        g = self.gradient(initial_guess, eps = 0.00001)
         
-        # Calculate the Variance Covariance Matrix
-        r_t = self.cov_matrix(g)
+        ##########################
+        ### Initial Values 
+        ###########################
+
+        # Calculate the initial Gradient
+        g_in = self.gradient(initial_guess, eps = 0.00001)
         
-        # Calculate the direction vector
-        direc = np.dot(np.linalg.inv(r_t),g)
+        # Calculate the initial Variance Covariance Matrix
+        r_t_in = self.cov_matrix(g_in)
         
-        # Check for convergence
-        dum = np.zeros(len(direc))
-        for elem in range(len(direc)):
-            dum[elem] = np.abs(direc[elem])/ max((1, np.abs(initial_guess[elem])))
+        # Check if the Variance Covariance Matrix is singular
+        if (np.linalg.det(r_t_in)):
+            print("Covariance Matrix is  not singular ")
+            pass
+        else: 
+            print("Covariance Matrix is singular ")
+            r_t_in = np.array([[100000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 100000, 0], [0, 0, 0, 100000]])
         
-        if max(dum) < tolerance_level:
-            print(" Final Estimate")
+        # Calculate the initial direction vector
+        direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(4,)
         
         lamb =  1
-        # Calculate the Lambda
-        nu = (self.logL((initial_guess + lamb * direc)) - self.logL(initial_guess))/lamb * direc.T * g 
+        delta = 0.02
+
+        # Initial Beta         
+        beta_in= np.array(initial_guess)
+
+        for it in range(max_iter):
+            print("Number of Iterations:" + str(it))
+            if it == 0:
+                beta = beta_in + lamb*direc_in
+                print("The actual Estimate is:   " +str(beta))
+            else:
+                
+                # Calculate the Gradient
+                g = self.gradient(tuple(beta), eps = 0.00001)
+                
+                # Calculate the initial Variance Covariance Matrix
+                r_t = self.cov_matrix(g)
+                
+                # Check if the Variance Covariance Matrix is singular
+                if (np.linalg.det(r_t)):
+                    print("Covariance Matrix is  not singular ")
+                    pass
+                else: 
+                    print("Covariance Matrix is singular ")
+                    r_t = np.array([[100000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 100000, 0], [0, 0, 0, 100000]])
+                
+                # Calculate the initial direction vector
+                direc = np.dot(np.linalg.inv(r_t),g).reshape(4,)
+
+                # Check for convergence
+                dum = np.zeros(len(direc))
+                for elem in range(len(direc)):
+                    dum[elem] = np.abs(direc[elem])/ max((1, np.abs(beta[elem])))
         
-        print("Hello Wolrd")
+                if max(dum) < tolerance_level:
+                    print(" Final Estimate foud" + str(beta))
+                    break
+
+                # Calculate the Lambda
+        
+                def calcnu(lamb):
+                    logL =  self.logL(list(beta))
+                    nu = float((self.logL(list((beta + lamb * direc))) - logL)) / (lamb * float(np.dot(direc, g)))
+                    return nu
+                
+                if calcnu(lamb) >= delta:
+                    lamb = 1
+                    print("Lambda is:   " + str(lamb))
+                else:
+                    while delta >= calcnu(lamb) or calcnu(lamb) >=1-delta:
+                        lamb *=0.8
+                        if lamb <= 0.001:
+                            pass
+                    print("Lambda is:   " + str(lamb))
+
+                beta = beta + lamb*direc
+                print("The actual Estimate is:   " +str(beta))
         
             
-        
-
 if __name__ == '__main__':
     import pandas as pd
     import sim
@@ -139,6 +202,6 @@ if __name__ == '__main__':
     X_train= X_train[~np.isnan(X_train)]
     
     est = Estimation(X_train, multiprocess= False)
-    est.bhhh((1,0,1.2,20), tolerance_level= 0.00000001, max_iter = 10000)
+    est.bhhh((0.7,0.3,0.7,35), tolerance_level= 0.00000001, max_iter = 10000)
         
         
