@@ -190,7 +190,7 @@ class OpinionFormation(object):
                 dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
             else: 
                 dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i]) * self.dt, variance= self.diffusion(self.x[i])*self.dt ) 
-        return dummy
+        return dummy/np.sum(dummy)
     
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, check_stability = False, calc_dens = False, converged =  True) -> np.array:

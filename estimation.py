@@ -17,7 +17,7 @@ class Estimation(object):
         self.time_series = time_series 
         self.multiprocess = multiprocess
 
-    def logL(self, guess) -> np.array:
+    def logL(self, guess:tuple) -> np.array:
         
         """
         The logL function takes a guess for the parameters and returns the log likelihood of that guess.
@@ -25,7 +25,7 @@ class Estimation(object):
             - time_series: The times series to be estimated. 
             - nu, alpha0, alpha0: Guesses for the parameters.
         Args:
-            guess (_type_): Initialize the parameters of the model
+            guess (tuple): Initialize the parameters of the model
 
         Returns:
             np.array: The sum of the logarithm of the density function at each point
@@ -74,21 +74,209 @@ class Estimation(object):
                     if mod.x[x] == np.around(time_series[elem+1],2):
                         logf[elem] = np.log((pdf[x]))
         
-            logL = (-1)* np.sum(logf)
+            logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
 
         return logL
     
-    def solver_BFGS(self, initial_guess: list):
+    def gradient(self, guess_initial: tuple, eps: float) -> np.array:
+        """
+        The gradient function calculates the gradient of the log likelihood function at a given point. 
+        The gradient is a vector with four components, one for each parameter in our model. 
+        It is calculated by taking the partial derivative of each component of the log likelihood function with respect to that parameter.
+
+        Args:
+            guess_initial (tuple): the actual guess of the parameters
+            eps (float): epsilion for the gradient calculation 
+
+        Returns:
+            np.array: array of the gradient values
+             
+        """
+
+        print("Calculate the Gradient")
+        
+        # Convert the gues tuple to list
+        guess_in = list(guess_initial)
+        
+        # Initialize the Gradient Column Vector
+        g = np.zeros([4,1]) # The Gradient is a column vector
+
+        # Log Likelihood of the guess
+        logL = self.logL(guess_in)
+        
+        guess_r = guess_in.copy()
+        #guess_l = guess_in.copy()
+        
+        for param in range(len(guess_in)):
+            guess_r[param] = guess_r[param] + eps 
+            #guess_l[param] = guess_l[param] - eps
+
+            g[param] = (self.logL(guess_r) - logL)/(eps)
+            
+            guess_r = guess_in.copy()
+            #guess_l = guess_in.copy()
+        
+        return g
+    
+    def cov_matrix(self, gradient: np.array) -> np.array:
+        """
+        The cov_matrix function takes in the gradient and returns the outer product which is the variance-covariance matrix 
+
+        Args:
+            gradient (np.array): Pass the gradient that is used to calculate the covariance matrix
+
+        Returns:
+            np.array: The covariance matrix of the gardient
+            
+        """
+        
+        r_t = (len(self.time_series)) * np.dot(gradient,gradient.T)
+        
+        return r_t
+        
+#########################################################################################################################################################################################
+#                                               BFGS Minimisation
+#########################################################################################################################################################################################
+    def solver_BFGS(self, initial_guess: list) -> tuple:
+        """
+        The solver_BFGS function takes in an initial guess for the parameters and returns the 
+        best fit parameters. The function uses a L-BFGS-B minimization algorithm to minimize 
+        the negative log likelihood function. 
+
+        Args:
+            initial_guess (list): Initialize the minimization process
+
+        Returns:
+            tuple: he optimized parameters, the log likelihood value and the number of iterations required to reach convergence
+        """
         
         # Unpack the inital guess
         nu, alpha0, alpha1, N = initial_guess
 
         # Minimite the negative Log Likelihood Function
-        res = minimize(self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
+        res = minimize((-1)*self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
         
         return res
+    
+#########################################################################################################################################################################################
+#                                               BHHHH Maximisation
+#########################################################################################################################################################################################
 
+
+    def bhhh(self, initial_guess: tuple, tolerance_level: float, max_iter:int) -> np.array:
+        """
+        The bhhh function takes in the initial guess, tolerance level and maximum number of iterations as input. 
+        It returns the final estimate after performing bhhh method for a given number of iterations.
+
+        Args:
+            initial_guess (tuple): Set the initial value of beta
+            tolerance_level (float): Determine the convergence of the algorithm
+            max_iter (int): Set the maximum number of iterations
+
+        Returns:
+            np.array: The final estimated
+           
+        """
+        ##########################
+        ### Initial Values 
+        ###########################
+
+        # Calculate the initial Gradient
+        g_in = self.gradient(initial_guess, eps = 0.01)
+        
+        # Calculate the initial Variance Covariance Matrix
+        r_t_in = self.cov_matrix(g_in)
+        
+        # Check if the Variance Covariance Matrix is singular
+        if (np.linalg.det(r_t_in)):
+            print("Covariance Matrix is  not singular ")
+            pass
+        else: 
+            print("Covariance Matrix is singular ")
+            r_t_in = np.array([[1000, 0, 0, 0], [0, 1000, 0, 0], [0, 0, 1000, 0], [0, 0, 0, 1000]])
+        
+        # Calculate the initial direction vector
+        direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(4,)
+        
+        lamb =  1
+        delta = 0.25
+
+        # Initial Beta         
+        beta_in= np.array(initial_guess)
+
+        for it in range(max_iter):
+            print("Number of Iterations:" + str(it))
+            if it == 0:
+                # Calculate the Lambda
+                # Helper Function
+                def calcnu(lamb):
+                    logL =  self.logL(list(beta_in))
+                    nu = float((self.logL(list((beta_in + lamb * direc_in))) - logL)) / (lamb * float(np.dot(direc_in, g_in)))
+                    return nu
+        
+                
+                if calcnu(lamb) >= delta:
+                    lamb = 1
+                    print("Lambda is:   " + str(lamb))
+                else:
+                    while delta >= calcnu(lamb) or calcnu(lamb) >=1-delta:
+                        lamb *=0.8
+                        if lamb <= 0.09:
+                            pass
+                    print("Lambda is:   " + str(lamb))
+                
+                beta = beta_in + lamb*direc_in
+                print("The actual Estimate is:   " +str(beta))
+            else:
+                
+                # Calculate the Gradient
+                g = self.gradient(tuple(beta), eps = 0.01)
+                
+                # Calculate the initial Variance Covariance Matrix
+                r_t = self.cov_matrix(g)
+                
+                # Check if the Variance Covariance Matrix is singular
+                if (np.linalg.det(r_t)):
+                    print("Covariance Matrix is  not singular ")
+                    pass
+                else: 
+                    print("Covariance Matrix is singular ")
+                    r_t = np.array([[10000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 10000, 0], [0, 0, 0, 1000]])
+                
+                # Calculate the initial direction vector
+                direc = np.dot(np.linalg.inv(r_t),g).reshape(4,)
+
+                # Check for convergence
+                dum = np.zeros(len(direc))
+                for elem in range(len(direc)):
+                    dum[elem] = np.abs(direc[elem])/ max((1, np.abs(beta[elem])))
+        
+                if max(dum) < tolerance_level:
+                    print(" Final Estimate foud" + str(beta))
+                    return beta 
+
+                # Calculate the Lambda
+                # Helper Function
+                def calcnu(lamb):
+                    logL =  self.logL(list(beta))
+                    nu = float((self.logL(list((beta + lamb * direc))) - logL)) / (lamb * float(np.dot(direc, g)))
+                    return nu
+        
+                
+                if calcnu(lamb) >= delta:
+                    lamb = 1
+                    print("Lambda is:   " + str(lamb))
+                else:
+                    while delta >= calcnu(lamb) or calcnu(lamb) >=1-delta:
+                        lamb *=0.8
+                        if lamb <= 0.09:
+                            pass
+                    print("Lambda is:   " + str(lamb))
+
+                beta = beta + lamb*direc
+                print("The actual Estimate is:   " +str(beta))
+                
 if __name__ == '__main__':
     import pandas as pd
     import sim
@@ -106,8 +294,8 @@ if __name__ == '__main__':
     plt.show()
 
     est = Estimation(d, multiprocess= False)
-    est.solver_BFGS((0.15, 0.09, 0.99, 21))
-    #res = dual_annealing(est.logL, bounds = [(0.01, 1), (-0.09, 0.3), ( 0.1, 2), (10, 40)])
+    #est.solver_BFGS((0.15, 0.09, 0.99, 21))
+    bet = est.bhhh((0.2, 0.3, 0.45, 40), tolerance_level= 0.00001, max_iter = 10000)
 
 
 
