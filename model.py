@@ -7,7 +7,7 @@ from tqdm import tqdm
 class OpinionFormation(object):
     
     # Initialize the class
-    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, deltax: float, deltat: float) -> None:
+    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, y: np.array, deltax: float, deltat: float) -> None:
         """ Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
 
         Args:
@@ -16,16 +16,21 @@ class OpinionFormation(object):
             nu (float): Flexibility Parameter
             alpha0 (float): Preference Parameter
             alpha1 (float): Adaptation Parameter
+            alpha2 (float): Assessment of the business cycle
+            alpha3 (float): Momentum Effect
             deltax (float): Discretization in space
             deltat (float): Discretization in time
         """
-        
+ 
         # Model input Parameter
         self.N      = N 
         self.T      = T 
         self.nu     = nu 
         self.alpha0 = alpha0
         self.alpha1 = alpha1 
+        self.alpha2 = alpha2
+        self.alpha3 = alpha3 
+        self.y      = y
         self.dx     = deltax
         self.dt     = deltat 
         
@@ -35,7 +40,7 @@ class OpinionFormation(object):
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
     # Helper Functions
-    def integrate(self, x: np.array, y: np.array):
+    def integrate(self, x: np.array, y: np.array) -> float:
         """ Calculates the area under the curve for given coordinates
 
         Args:
@@ -49,6 +54,25 @@ class OpinionFormation(object):
         return area
     
     # Define the Model Functions
+
+    def influence_function_0(self, x:float) -> float:
+        """
+        Calculates the influence in the Case of no influence from output or momentum effects
+
+        Args:
+            x (float): The point in space
+
+        Returns:
+            float: The value of the influence function
+        """
+        return self.alpha0 + self.alpha1* x
+
+    def influence_function_1(self,x:float,y:float) -> float:
+        return self.alpha0 + self.alpha1 * x + self.alpha2 * y
+
+    def influence_function_1(self,x:float, x_1: float ,y:float) -> float:
+        return self.alpha0 + self.alpha1 * x + self.alpha2 * y + self.alpha3*(x - x_1)
+
     def transition_rate_up(self, x: float) -> float:
         """ Calculates the Transition Probability for the whole socio-configuration to move upward
 
@@ -58,9 +82,9 @@ class OpinionFormation(object):
         Returns:
             float: Transition Probability for a movement upward
         """
-        return self.N * (1-x) * self.nu * np.exp(self.alpha0 + self.alpha1* x)
+        return self.N * (1-x) * self.nu * np.exp(self.influence_function_0(x))
     
-    def transition_rate_down(self, x: float, test = False) -> float:
+    def transition_rate_down(self, x: float) -> float:
         """ Calculates the Transition Probability for the whole socio-configuration to move downward
 
         Args:
@@ -69,7 +93,7 @@ class OpinionFormation(object):
         Returns:
             float: Transition Probability for a movement downward
         """
-        return self.N * (1+x) * self.nu * np.exp(-self.alpha0 - self.alpha1* x)
+        return self.N * (1+x) * self.nu * np.exp((-1)*self.influence_function_0(x))
     
     def drift(self, x: float) -> float:
         """

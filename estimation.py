@@ -36,10 +36,10 @@ class Estimation(object):
         # Parameters to be estimated
         nu, alpha0, alpha1, N = guess
 
-        print("The actual guess is: " + str(guess))
+        #print("The actual guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, deltax= 0.01, deltat= 1/16)
+        mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
@@ -64,7 +64,7 @@ class Estimation(object):
         
         else: 
         
-            for elem in tqdm(range(len(time_series)-1)):
+            for elem in range(len(time_series)-1):
 
                 # Solve the Fokker Plank Equation: 
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
@@ -75,10 +75,27 @@ class Estimation(object):
                         logf[elem] = np.log((pdf[x]))
         
             logL = np.sum(logf)
-            print("The Log Likelihood is: " + str(logL)) 
+            
+            #print("The Log Likelihood is: " + str(logL)) 
 
         return logL
     
+    def neglogL(self, guess:tuple) -> np.array:
+        """
+        The neglogL function returns the negative log likelihood of a given guess. 
+        The function takes in a tuple of parameters and returns an array. The array is the negative log likelihood for each value in the parameter space.
+
+        Args:
+            guess (tuple): Pass the Initial Guess that are being estimated
+
+        Returns:
+            np.array: The negative log likelihood of the data given a guess for the parameter values
+        """     
+
+        nlogL = (-1) * self.logL(guess= guess)
+
+        return nlogL 
+
     def gradient(self, guess_initial: tuple, eps: float) -> np.array:
         """
         The gradient function calculates the gradient of the log likelihood function at a given point. 
@@ -153,10 +170,12 @@ class Estimation(object):
         
         # Unpack the inital guess
         nu, alpha0, alpha1, N = initial_guess
-
-        # Minimite the negative Log Likelihood Function
-        res = minimize((-1)*self.logL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
+        print("The Initial guess" + str(initial_guess))
         
+        # Minimite the negative Log Likelihood Function
+        res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': True})
+        
+        print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
         return res
     
 #########################################################################################################################################################################################
@@ -277,25 +296,6 @@ class Estimation(object):
                 beta = beta + lamb*direc
                 print("The actual Estimate is:   " +str(beta))
                 
-if __name__ == '__main__':
-    import pandas as pd
-    import sim
-    from sympy import *
-
-    training_data_x = pd.read_excel("zew.xlsx", header=None)
-    X_train= training_data_x[1].to_numpy()
-    X_train= X_train[~np.isnan(X_train)]
-    plt.plot(X_train)
-    plt.show()
-
-    simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
-    d = simulation.eulermm(-0.59)
-    plt.plot(d)
-    plt.show()
-
-    est = Estimation(d, multiprocess= False)
-    #est.solver_BFGS((0.15, 0.09, 0.99, 21))
-    bet = est.bhhh((0.2, 0.3, 0.45, 40), tolerance_level= 0.00001, max_iter = 10000)
 
 
 
