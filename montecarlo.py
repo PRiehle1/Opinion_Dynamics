@@ -37,13 +37,21 @@ class MonteCarlo(object):
             
             # Multiprocessing 
             
-            pool = mp.Pool(mp.cpu_count())
+            processes = []
+            for i in range(self.numSim):
+                res = mp.Process(target = self.estimation.solver_BFGS, args=(list(init_guess[i,:]),))
+                processes.append(res) 
+                res.start() 
+            
+            for process in processes:
+                process.join()    
+            # pool = mp.Pool(mp.cpu_count())
 
-            # Estimate the Parameters for the list of initial guesses:
-            res = list(tqdm(pool.map(self.estimation.solver_BFGS, init_guess_list)))
+            # # Estimate the Parameters for the list of initial guesses:
+            # res = list(tqdm(pool.map(self.estimation.solver_BFGS, init_guess_list)))
 
-            # Close the Pool of Workers
-            pool.close() 
+            # # Close the Pool of Workers
+            # pool.close() 
 
             end = time.time()
             print(end-start)
@@ -73,11 +81,11 @@ if __name__ == '__main__':
     X_train= X_train[~np.isnan(X_train)]
 
     mC = MonteCarlo(numSim= 10, model = model.OpinionFormation , estimation= estimation.Estimation(X_train, multiprocess= False))
-    estim_array, logL_array, initial_estim =  mC.run(multiprocess= False)
-    #res = mC.run(multiprocess= True)
-    np.save('estimates.npy', estim_array)
-    np.save('logL_array.npy', logL_array)
-    np.save('initial_estim.npy', initial_estim)
+    #estim_array, logL_array, initial_estim =  mC.run(multiprocess= False)
+    res = mC.run(multiprocess= True)
+    #np.save('estimates.npy', estim_array)
+    #np.save('logL_array.npy', logL_array)
+    #np.save('initial_estim.npy', initial_estim)
 
 
     # simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
@@ -86,5 +94,5 @@ if __name__ == '__main__':
     # est = Estimation(d, multiprocess= False)
     # #est.solver_BFGS((0.15, 0.09, 0.99, 21))
     # bet = est.bhhh((0.2, 0.3, 0.45, 40), tolerance_level= 0.00001, max_iter = 10000)
-#[ 0.04988776  0.09207874  0.99798172 21.0035398 ]
-#-654.5019808289726
+    #[ 0.04988776  0.09207874  0.99798172 21.0035398 ]
+    #-654.5019808289726
