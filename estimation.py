@@ -4,6 +4,7 @@ import numpy as np
 import model
 from scipy.optimize import minimize, dual_annealing
 import matplotlib.pyplot as plt
+import datetime
 
 import multiprocessing as mp
 
@@ -16,6 +17,7 @@ class Estimation(object):
     def __init__(self, time_series: np.array, multiprocess : bool) -> None: 
         self.time_series = time_series 
         self.multiprocess = multiprocess
+        
 
     def logL(self, guess:tuple) -> np.array:
         
@@ -44,7 +46,7 @@ class Estimation(object):
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
 
-        if self.multiprocess == True:
+        if False == True:
             # Time Series to List
             time_series_list = self.time_series.tolist()
             # Multiprocessing 
@@ -93,7 +95,8 @@ class Estimation(object):
         """     
 
         nlogL = (-1) * self.logL(guess= guess)
-
+        now = datetime.datetime.now()
+        print(now.time())
         return nlogL 
 
     def gradient(self, guess_initial: tuple, eps: float) -> np.array:
@@ -170,12 +173,14 @@ class Estimation(object):
         
         # Unpack the inital guess
         nu, alpha0, alpha1, N = initial_guess
-        print("The Initial guess" + str(initial_guess))
+        #print("The Initial guess" + str(initial_guess))
+        print('Starting:', mp.current_process().name)
         
         # Minimite the negative Log Likelihood Function
-        res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'disp': False})
-        
-        print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
+        res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        print('Exiting :', mp.current_process().name)
+
+        #print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
         return res
     
 #########################################################################################################################################################################################
