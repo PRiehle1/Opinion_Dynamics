@@ -3,9 +3,6 @@ from tqdm import tqdm
 import numpy as np
 import model
 from scipy.optimize import minimize, dual_annealing
-import matplotlib.pyplot as plt
-import datetime
-
 import multiprocessing as mp
 
 
@@ -38,7 +35,7 @@ class Estimation(object):
         # Parameters to be estimated
         nu, alpha0, alpha1, N = guess
 
-        #print("The actual guess is: " + str(guess))
+        print("The Minimization_Guess is: " + str(guess))
 
         # The Model
         mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
@@ -78,7 +75,7 @@ class Estimation(object):
         
             logL = np.sum(logf)
             
-            #print("The Log Likelihood is: " + str(logL)) 
+            print("The Log Likelihood is: " + str(logL)) 
 
         return logL
     
@@ -95,8 +92,6 @@ class Estimation(object):
         """     
 
         nlogL = (-1) * self.logL(guess= guess)
-        now = datetime.datetime.now()
-        print(now.time())
         return nlogL 
 
     def gradient(self, guess_initial: tuple, eps: float) -> np.array:
@@ -173,14 +168,15 @@ class Estimation(object):
         
         # Unpack the inital guess
         nu, alpha0, alpha1, N = initial_guess
-        #print("The Initial guess" + str(initial_guess))
+        print("The Initial guess" + str(initial_guess))
+        
         print('Starting:', mp.current_process().name)
         
         # Minimite the negative Log Likelihood Function
         res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
         print('Exiting :', mp.current_process().name)
 
-        #print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
+        print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
         return res
     
 #########################################################################################################################################################################################
