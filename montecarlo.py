@@ -22,15 +22,15 @@ class MonteCarlo(object):
         logL_array = res.fun
 
         estim =np.genfromtxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\estimates.csv", delimiter=',')
-        estim_array = np.np.vstack([estim, estim_array])
+        estim_array = np.vstack([estim, estim_array])
         np.savetxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\estimates.csv", estim_array, delimiter=",")
 
         logL =np.genfromtxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\logL_array.csv", delimiter=',')
-        logL_array = np.np.vstack([logL, logL_array] )
+        logL_array = np.vstack([logL, logL_array] )
         np.savetxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\logL_array.csv", logL_array, delimiter=",")
        
         in_est =np.genfromtxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\initial_estim.csv", delimiter=',')
-        init_guess = np.np.vstack([in_est, init_guess] )
+        init_guess = np.vstack([in_est, init_guess] )
         np.savetxt(r"C:\Users\phill\OneDrive\Desktop\Master_Thesis\Opinion_Dynamics\Opinion_Dynamics\Estimation\initial_estim.csv", init_guess, delimiter=",")
 
 
@@ -59,21 +59,17 @@ if __name__ == '__main__':
     import pandas as pd
     from sympy import *
     import multiprocessing
-    import time
-	
 
     training_data_x = pd.read_excel("zew.xlsx", header=None)
     X_train= training_data_x[1].to_numpy()
     X_train= X_train[~np.isnan(X_train)]
 
     # Set up the Monte Carlo Simulation
-    start = time.time()
+
     mC = MonteCarlo(numSim= 20, model = model.OpinionFormation , estimation= estimation.Estimation(X_train, multiprocess= False), parallel= False)
 
     mC.run()
-    end = time.time()
-    print("The Estimation took:")
-    print(end - start)
+
 
     # simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
     # d = simulation.eulermm(-0.59)
