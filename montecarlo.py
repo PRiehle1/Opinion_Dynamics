@@ -5,6 +5,7 @@ import multiprocessing as mp
 from tqdm import tqdm 
 import numpy as np
 import time 
+from collections import Counter
 
 class MonteCarlo(object):
 
@@ -37,26 +38,38 @@ class MonteCarlo(object):
             
             # Multiprocessing 
             
-            processes = []
-            for i in range(self.numSim):
-                res = mp.Process(target = self.estimation.solver_BFGS, args=(list(init_guess[i,:]),))
-                processes.append(res) 
-                res.start() 
+            # processes = []
+            # for i in range(self.numSim):
+            #     res = mp.Process(name = 'minimize logL', target = self.estimation.solver_BFGS, args=(list(init_guess[i,:]),))
+            #     res.daemon = True 
+            #     processes.append(res)
+            #     res.start() 
+                
             
-            for process in processes:
-                process.join()    
-            # pool = mp.Pool(mp.cpu_count())
+            # for process in processes:
+            #      process.join()    
+            #return res
+            
+            def _parallel_mc(iter=self.numSim):
+                pool = mp.Pool(4)
 
-            # # Estimate the Parameters for the list of initial guesses:
-            # res = list(tqdm(pool.map(self.estimation.solver_BFGS, init_guess_list)))
+                future_res = [pool.map(self.estimation.solver_BFGS, init_guess_list) for _ in range(iter)]
+                res = [f.get() for f in future_res]
 
-            # # Close the Pool of Workers
-            # pool.close() 
+                return res
 
-            end = time.time()
-            print(end-start)
+            def parallel_monte_carlo(iter=self.numSim):
+                samples = _parallel_mc(iter)
 
-            return res
+                # Count each item in our samples
+                p = Counter(samples)
+                # Convert to dict so we could use update() method properly
+                p = dict(p)
+
+                return p
+
+            p = parallel_monte_carlo(iter=self.numSim)
+            return p
 
         else:
 
@@ -80,12 +93,14 @@ if __name__ == '__main__':
     X_train= training_data_x[1].to_numpy()
     X_train= X_train[~np.isnan(X_train)]
 
-    mC = MonteCarlo(numSim= 10, model = model.OpinionFormation , estimation= estimation.Estimation(X_train, multiprocess= False))
-    #estim_array, logL_array, initial_estim =  mC.run(multiprocess= False)
+    mC = MonteCarlo(numSim= 5, model = model.OpinionFormation , estimation= estimation.Estimation(X_train, multiprocess= False))
     res = mC.run(multiprocess= True)
-    #np.save('estimates.npy', estim_array)
-    #np.save('logL_array.npy', logL_array)
-    #np.save('initial_estim.npy', initial_estim)
+    
+    estim_array, logL_array, initial_estim =  mC.run(multiprocess= False)
+    
+    np.save('estimates.npy', estim_array)
+    np.save('logL_array.npy', logL_array)
+    np.save('initial_estim.npy', initial_estim)
 
 
     # simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
