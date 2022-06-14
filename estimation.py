@@ -4,6 +4,7 @@ import numpy as np
 import model
 from scipy.optimize import minimize, dual_annealing
 import multiprocessing as mp
+from optimparallel import minimize_parallel
 
 
 # Define the class 
@@ -174,6 +175,9 @@ class Estimation(object):
         
         # Minimite the negative Log Likelihood Function
         res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        
+        #res = minimize_parallel(self.neglogL, x0 =(nu, alpha0 , alpha1, N) )
+        
         print('Exiting :', mp.current_process().name)
 
         print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
