@@ -217,7 +217,7 @@ class OpinionFormation(object):
         return dummy/np.sum(dummy)
     
     # Define the functions for the solution of the partial differential equaution
-    def CrankNicolson(self, x_0:float, check_stability = False, calc_dens = False, converged =  True) -> np.array:
+    def CrankNicolson(self, x_0:float, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
         """
         The CrankNicolson function takes in the initial conditions and sets up the characteristic matrix
          for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
@@ -284,42 +284,50 @@ class OpinionFormation(object):
                     + dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem+1]) + self.transition_rate_down(x[elem+1])))
         # Inverse of the Matrix 
         a_b = np.matmul(np.linalg.inv(a),b)
-
-        # Check the Stability of the Matrix
-        if check_stability == True:
-            eigenvalues,_ = np.linalg.eig(a_b)
-            if np.abs(eigenvalues).max() > 1.00000000009:             
-                print(np.abs(eigenvalues).max())
-                raise UnstableSolutionMethodError
-        else: pass
-
+        
         # Initial Distribution 
         prob[:,0] = self.initialDistribution(x_0, truncated= True)
-        #prob[:,0] = prob[:,0]/ np.sum(prob[:,0])
 
-        # Calulation of the Probability Flow with optional Density Calculation and Analysis
-        if calc_dens == True:
-            area = np.zeros(len(self.t))
-            for t in range(1,len(self.t)): 
-                area[t] = simps(self.prob[:,t-1], x = self.x)
-                if  area[t] <= area[1] - 0.05 or area[t-1] >= area[1] + 0.05:           
-                    raise WrongDensityValueError(area[t], t)
-                else: 
-                    self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
-            if converged == False:         
-                return area, self.prob, self.prob[:, -1]
-            else: 
-                return area, self.prob[:,-1]
-        else: 
+        if fast_comp == True: 
+            
             x = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
                 self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+            
+            return self.prob[:,-1]
+        else:
+            
+            # Check the Stability of the Matrix
+            if check_stability == True:
+                eigenvalues,_ = np.linalg.eig(a_b)
+                if np.abs(eigenvalues).max() > 1.00000000009:             
+                    print(np.abs(eigenvalues).max())
+                    raise UnstableSolutionMethodError
+            else: pass
 
-            if converged == False:         
-                return self.prob, self.prob[:, -1]
+            # Calulation of the Probability Flow with optional Density Calculation and Analysis
+            if calc_dens == True:
+                area = np.zeros(len(self.t))
+                for t in range(1,len(self.t)): 
+                    area[t] = simps(self.prob[:,t-1], x = self.x)
+                    if  area[t] <= area[1] - 0.05 or area[t-1] >= area[1] + 0.05:           
+                        raise WrongDensityValueError(area[t], t)
+                    else: 
+                        self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
+                if converged == False:         
+                    return area, self.prob, self.prob[:, -1]
+                else: 
+                    return area, self.prob[:,-1]
             else: 
-                
-                return self.prob[:,-1]
+                x = np.zeros(len(self.t))
+                for t in range(1,len(self.t)):
+                    self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+
+                if converged == False:         
+                    return self.prob, self.prob[:, -1]
+                else: 
+                    
+                    return self.prob[:,-1]
         
             
 

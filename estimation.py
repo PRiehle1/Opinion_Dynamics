@@ -1,5 +1,6 @@
 # Import Packages 
 from tqdm import tqdm
+import time
 import numpy as np
 import model
 from scipy.optimize import minimize, dual_annealing
@@ -34,17 +35,17 @@ class Estimation(object):
         time_series = self.time_series
     
         # Parameters to be estimated
-        nu, alpha0, alpha1, N = guess
+        nu, alpha0, alpha1= guess
 
         print("The Minimization_Guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
+        mod = model.OpinionFormation(N = 175, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
 
-        if False == True:
+        if self.multiprocess == True:
             # Time Series to List
             time_series_list = self.time_series.tolist()
             # Multiprocessing 
@@ -62,13 +63,12 @@ class Estimation(object):
             logL = (-1)* np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
         
-        else: 
-        
-            for elem in range(len(time_series)-1):
+        else:   
+            start = time.time()
 
+            for elem in range(len(time_series)-1):
                 # Solve the Fokker Plank Equation: 
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
-
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
                     if mod.x[x] == np.around(time_series[elem+1],2):
@@ -77,7 +77,9 @@ class Estimation(object):
             logL = np.sum(logf)
             
             print("The Log Likelihood is: " + str(logL)) 
-
+            end = time.time()
+            dum = end - start
+            print("Time past for one caclulaion of the likelihood:  " + str(dum)) 
         return logL
     
     def neglogL(self, guess:tuple) -> np.array:
@@ -172,15 +174,24 @@ class Estimation(object):
         print("The Initial guess" + str(initial_guess))
         
         print('Starting:', mp.current_process().name)
+        start = time.time()
         
-        # Minimite the negative Log Likelihood Function
-        res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        # Minimite the negative Log Likelihood Function endogenous N
+        #res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
         
+        # Minimite the negative Log Likelihood Function exogenous N
+        res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+
+
         #res = minimize_parallel(self.neglogL, x0 =(nu, alpha0 , alpha1, N) )
         
         print('Exiting :', mp.current_process().name)
 
         print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
+        end = time.time()
+        dum = end - start
+        print("Time past for one estimation of the parameters:  " + str(dum)) 
+
         return res
     
 #########################################################################################################################################################################################
