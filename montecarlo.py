@@ -26,11 +26,11 @@ class MonteCarlo(object):
         np.savetxt("Estimation/estimates.csv", estim_array, delimiter=",")
 
         logL =np.genfromtxt("Estimation/logL_array.csv", delimiter=',')
-        logL_array = np.vstack([logL, logL_array])
+        logL_array = np.append(logL, logL_array)
         np.savetxt("Estimation/logL_array.csv", logL_array, delimiter=",")
        
         in_est =np.genfromtxt("Estimation/initial_estim.csv", delimiter=',')
-        init_guess = np.vstack([in_est, init_guess])
+        init_guess = np.vstack([in_est, np.block(list(init_guess))])
         np.savetxt("Estimation/initial_estim.csv", init_guess, delimiter=",")
 
 
@@ -39,14 +39,14 @@ class MonteCarlo(object):
 
         if self.parallel == False:
             for i in range(self.numSim):
-                init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
                 self.estim(tuple(init_guess))
         else: 
             
             for i in range(int(self.numSim/5)):
                 jobs = []
                 for d in range(5):
-                    init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                    init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#

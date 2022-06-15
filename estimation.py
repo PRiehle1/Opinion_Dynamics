@@ -58,8 +58,8 @@ class Estimation(object):
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],3):
-                        logf[elem] = np.log(pdf[elem,x])
+                    if mod.x[x] == np.around(time_series[elem+1],2):
+                        logf[elem] = np.log(np.abs(pdf[elem,x]))
             logL = (-1)* np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
         
@@ -72,7 +72,7 @@ class Estimation(object):
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
                     if mod.x[x] == np.around(time_series[elem+1],2):
-                        logf[elem] = np.log((pdf[x]))
+                        logf[elem] = np.log((np.abs(pdf[x])))
         
             logL = np.sum(logf)
             
@@ -189,8 +189,8 @@ class Estimation(object):
 
         print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))
         end = time.time()
-        dum = end - start
-        print("Time past for one estimation of the parameters:  " + str(dum)) 
+        dum = (end - start)/60
+        print("Time past for one estimation of the parameters:  " + str(dum) + " minutes") 
 
         return res
     
