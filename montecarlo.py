@@ -39,14 +39,23 @@ class MonteCarlo(object):
 
         if self.parallel == False:
             for i in range(self.numSim):
-                init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                
+                # Init Guess exogenous N
+                # init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                # Init Guess endogenous N 
+                init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                
+                
                 self.estim(tuple(init_guess))
         else: 
             
             for i in range(int(self.numSim/5)):
                 jobs = []
                 for d in range(5):
-                    init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                    # Init Guess exogenous N
+                    # init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                    # Init Guess endogenous N 
+                    init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#

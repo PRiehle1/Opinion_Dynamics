@@ -35,12 +35,12 @@ class Estimation(object):
         time_series = self.time_series
     
         # Parameters to be estimated
-        nu, alpha0, alpha1= guess
+        nu, alpha0, alpha1, N = guess
 
         print("The Minimization_Guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = 175, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
+        mod = model.OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
@@ -176,13 +176,12 @@ class Estimation(object):
         print('Starting:', mp.current_process().name)
         start = time.time()
         
-        # Minimite the negative Log Likelihood Function endogenous N
-        #res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
-        
         # Minimite the negative Log Likelihood Function exogenous N
-        res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        #res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
 
-
+        # Minimite the negative Log Likelihood Function endogenous N
+        res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+   
         #res = minimize_parallel(self.neglogL, x0 =(nu, alpha0 , alpha1, N) )
         
         print('Exiting :', mp.current_process().name)
