@@ -70,7 +70,7 @@ class OpinionFormation(object):
     def influence_function_1(self,x:float,y:float) -> float:
         return self.alpha0 + self.alpha1 * x + self.alpha2 * y
 
-    def influence_function_1(self,x:float, x_1: float ,y:float) -> float:
+    def influence_function_2(self,x:float, x_1: float ,y:float) -> float:
         return self.alpha0 + self.alpha1 * x + self.alpha2 * y + self.alpha3*(x - x_1)
 
     def transition_rate_up(self, x: float) -> float:
