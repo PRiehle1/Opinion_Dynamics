@@ -69,17 +69,19 @@ if __name__ == '__main__':
     from sympy import *
     import multiprocessing
     import sim 
+    import matplotlib.pyplot as plt
 
     training_data_x = pd.read_excel("zew.xlsx", header=None)
     X_train= training_data_x[1].to_numpy()
     X_train= X_train[~np.isnan(X_train)]
 
     # Simulated data
-    sim = sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, seed = 150)  
-    test_data = sim.simulation(-0.59, sim_length = 200)
-    
+    sim = sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.005, deltat = 1/16, seed = 150)  
+    test_data = sim.simulation(0, sim_length = 200)
+    plt.plot(test_data)
+    plt.show()
     # Set up the Monte Carlo Estimation
-    mC = MonteCarlo(numSim= 20, model = model.OpinionFormation , estimation= estimation.Estimation(test_data, multiprocess= False), parallel= False)
+    mC = MonteCarlo(numSim= 20, model = model.OpinionFormation , estimation= estimation.Estimation(test_data, multiprocess= True), parallel= False)
     mC.run()
 
 

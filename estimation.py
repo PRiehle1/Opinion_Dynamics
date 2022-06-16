@@ -40,16 +40,16 @@ class Estimation(object):
         print("The Minimization_Guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = 50, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16)
+        mod = model.OpinionFormation(N = 50, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.005, deltat= 1/16)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series))
 
         if self.multiprocess == True:
             # Time Series to List
-            time_series_list = self.time_series.tolist()
+            time_series_list = self.time_series
             # Multiprocessing 
-            pool = mp.Pool(mp.cpu_count())
+            pool = mp.Pool(4)
 
             # Calculate the PDF for all values in the Time Series
             pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list)))
@@ -60,7 +60,7 @@ class Estimation(object):
                 for x in range(len(mod.x)):
                     if mod.x[x] == np.around(time_series[elem+1],2):
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
-            logL = (-1)* np.sum(logf)
+            logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
         
         else:   
@@ -177,7 +177,7 @@ class Estimation(object):
         start = time.time()
         
         # Minimite the negative Log Likelihood Function exogenous N
-        res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), (0, None)],  callback=None, options={'gtol': 1e-03, 'eps': 1e-02, 'maxiter': 100, 'iprint': -1})
 
         # Minimite the negative Log Likelihood Function endogenous N
         #res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
