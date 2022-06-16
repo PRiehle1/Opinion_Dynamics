@@ -292,7 +292,7 @@ class OpinionFormation(object):
             
             x = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
-                self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+                self.prob[:,t] =  np.abs(np.matmul(a_b,self.prob[:,t-1]))  
             
             return self.prob[:,-1]
         else:
