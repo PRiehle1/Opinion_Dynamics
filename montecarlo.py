@@ -1,50 +1,122 @@
 # Class for Monte Carlo Estimation of the Time Series: 
-import model
 import estimation
 import numpy as np
 import multiprocessing
 import pandas as pd
+import os
 
 
 class MonteCarlo(object):
 
-    def __init__(self, numSim: int, model: object, estimation: object, parallel: bool) -> None:
+    def __init__(self, numSim: int,  estimation: object, parallel: bool, real_data: bool) -> None:
         self.numSim = numSim
-        self.model = model
         self.estimation = estimation
         self.parallel = parallel
+        self.real_data = real_data
   
 
     def estim(self, init_guess) -> np.array:
-
+        #### Solver BFGS 
         res = self.estimation.solver_BFGS(init_guess)
+
+        #res = self.estimation.solver_bhhh(init_guess, tolerance_level= 0.0001, max_iter= 40)
         estim_array = res.x
         logL_array = res.fun
+        if self.real_data == True:
+            if self.estimation.model_type == 0:
 
-        estim_old =np.genfromtxt("Estimation/estimates.csv", delimiter=',')    
-        estim_array = np.vstack([estim_old, estim_array])
-        np.savetxt("Estimation/estimates.csv", estim_array, delimiter=",")
+                if os.path.exists("Estimation/Model_0/estimates_model_0.csv") == False:
+                    np.savetxt("Estimation/Model_0/estimates_model_0.csv", [0,0,0], delimiter=",")
+                estim_old =np.genfromtxt("Estimation/Model_0/estimates_model_0.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/Model_0/estimates_model_0.csv", estim_array, delimiter=",")
 
-        logL =np.genfromtxt("Estimation/logL_array.csv", delimiter=',')
-        logL_array = np.append(logL, logL_array)
-        np.savetxt("Estimation/logL_array.csv", logL_array, delimiter=",")
-       
-        in_est =np.genfromtxt("Estimation/initial_estim.csv", delimiter=',')
-        init_guess = np.vstack([in_est, np.block(list(init_guess))])
-        np.savetxt("Estimation/initial_estim.csv", init_guess, delimiter=",")
+                if os.path.exists("Estimation/Model_0/logL_array_model_0.csv") == False:
+                    np.savetxt("Estimation/Model_0/logL_array_model_0.csv", [0], delimiter=",")
+                logL =np.genfromtxt("Estimation/Model_0/logL_array_model_0.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/Model_0/logL_array_model_0.csv", logL_array, delimiter=",")
+                
+                if os.path.exists("Estimation/Model_0/initial_estim_model_0.csv") == False:
+                    np.savetxt("Estimation/Model_0/initial_estim_model_0.csv", [0,0,0], delimiter=",")
+                in_est =np.genfromtxt("Estimation/Model_0/initial_estim_model_0.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/Model_0/initial_estim_model_0.csv", init_guess, delimiter=",")
 
+            elif self.estimation.model_type == 1: 
+                estim_old =np.genfromtxt("Estimation/estimates_model_1.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/estimates_model_1.csv", estim_array, delimiter=",")
 
+                logL =np.genfromtxt("Estimation/logL_array_model_1.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/logL_array_model_1.csv", logL_array, delimiter=",")
+                
+                in_est =np.genfromtxt("Estimation/initial_estim_model_1.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/initial_estim_model_1.csv", init_guess, delimiter=",")
+
+            elif self.estimation.model_type == 2: 
+                estim_old =np.genfromtxt("Estimation/estimates_model_2.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/estimates_model_2.csv", estim_array, delimiter=",")
+
+                logL =np.genfromtxt("Estimation/logL_array_model_2.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/logL_array_model_2.csv", logL_array, delimiter=",")
+                
+                in_est =np.genfromtxt("Estimation/initial_estim_model_2.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/initial_estim_model_2.csv", init_guess, delimiter=",")
+
+            elif self.estimation.model_type == 3: 
+                estim_old =np.genfromtxt("Estimation/estimates_model_3.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/estimates_model_3.csv", estim_array, delimiter=",")
+
+                logL =np.genfromtxt("Estimation/logL_array_model_3.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/logL_array_model_3.csv", logL_array, delimiter=",")
+                
+                in_est =np.genfromtxt("Estimation/initial_estim_model_3.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/initial_estim_model_3.csv", init_guess, delimiter=",")
+        
+        elif self.real_data == False: 
+
+            if self.estimation.model_type == 0:
+
+                if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0.csv", [0,0,0], delimiter=",")
+                estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/sim_Data/exoN/estimates_model_0.csv", estim_array, delimiter=",")
+
+                if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0.csv", [0], delimiter=",")
+                logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0.csv", logL_array, delimiter=",")
+                
+                if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", [0,0,0], delimiter=",")
+                in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", init_guess, delimiter=",")
 
     def run(self) -> np.array:
 
         if self.parallel == False:
             for i in range(self.numSim):
                 
-                # Init Guess exogenous N
-                init_guess = (3 + np.random.normal(0, 0.2, 1), 0  + np.random.normal(0, 0.05, 1), 0.8 + np.random.normal(0, 0.2, 1), 50 + np.random.normal(0, 5, 1))
-                # Init Guess endogenous N 
-                #init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
-                
+                if self.estimation.model_type == 0:
+                    init_guess = (1 + np.random.normal(0, 0.3, 1), 0  + np.random.normal(0, 0.1, 1), 1.2 + np.random.normal(0, 0.2, 1))
+                elif self.estimation.model_type == 1: 
+                    init_guess = (0.15 + np.random.normal(0, 0.1, 1), 0.09  + np.random.normal(0, 0.01, 1), 0.9 + np.random.normal(0, 0.1, 1), 21.21 + np.random.normal(0, 5, 1))
+                elif self.estimation.model_type == 2: 
+                    pass
+                elif self.estimation.model_type == 3: 
+                    pass
                 
                 self.estim(tuple(init_guess))
         else: 
@@ -52,44 +124,17 @@ class MonteCarlo(object):
             for i in range(int(self.numSim/5)):
                 jobs = []
                 for d in range(5):
-                    # Init Guess exogenous N
-                    # init_guess = (0.78 + np.random.normal(0, 0.05, 1), 0.01  + np.random.normal(0, 0.05, 1), 1.19 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
-                    # Init Guess endogenous N 
-                    init_guess = (0.15 + np.random.normal(0, 0.05, 1), 0.09  + np.random.normal(0, 0.05, 1), 0.99 + np.random.normal(0, 0.2, 1), 21 + np.random.normal(0, 5, 1))
+                    if self.estimation.model_type == 0:
+                        init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1))
+                    elif self.estimation.model_type == 1: 
+                        init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1), 50 + np.random.normal(0, 5, 1))
+                    elif self.estimation.model_type == 2: 
+                        pass
+                    elif self.estimation.model_type == 3: 
+                        pass
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#
 
                 for proc in jobs:
                     proc.join()
-
-if __name__ == '__main__':
-    # Load the Training Data 
-    import pandas as pd
-    from sympy import *
-    import multiprocessing
-    import sim 
-    import matplotlib.pyplot as plt
-
-    training_data_x = pd.read_excel("zew.xlsx", header=None)
-    X_train= training_data_x[1].to_numpy()
-    X_train= X_train[~np.isnan(X_train)]
-
-    # Simulated data
-    sim = sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.005, deltat = 1/16, seed = 150)  
-    test_data = sim.simulation(0, sim_length = 200)
-    plt.plot(test_data)
-    plt.show()
-    # Set up the Monte Carlo Estimation
-    mC = MonteCarlo(numSim= 20, model = model.OpinionFormation , estimation= estimation.Estimation(test_data, multiprocess= True), parallel= False)
-    mC.run()
-
-
-    # simulation = sim.Simulation(N = 21, T = 200, nu = 0.15 , alpha0 = 0.09, alpha1 = 0.99, deltax = 0.02, deltat = 1/16, seed = 150)
-    # d = simulation.eulermm(-0.59)
-
-    # est = Estimation(d, multiprocess= False)
-    # #est.solver_BFGS((0.15, 0.09, 0.99, 21))
-    # bet = est.bhhh((0.2, 0.3, 0.45, 40), tolerance_level= 0.00001, max_iter = 10000)
-    #[ 0.04988776  0.09207874  0.99798172 21.0035398 ]
-    #-654.5019808289726
