@@ -1,3 +1,4 @@
+from operator import mod
 import numpy as np 
 from math import *
 from errors import * 
@@ -7,9 +8,8 @@ from tqdm import tqdm
 class OpinionFormation(object):
     
     # Initialize the class
-    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, y: np.array, deltax: float, deltat: float) -> None:
+    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, y: np.array, deltax: float, deltat: float, model_type: int) -> None:
         """ Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
-
         Args:
             N (int): Number of Agents
             T (int): Total Amount of Time
@@ -18,8 +18,10 @@ class OpinionFormation(object):
             alpha1 (float): Adaptation Parameter
             alpha2 (float): Assessment of the business cycle
             alpha3 (float): Momentum Effect
+            y (np.array): Underlying Time Series
             deltax (float): Discretization in space
             deltat (float): Discretization in time
+            model_type(int): Type of the Model (0: a2,a3 = 0 & N = 175; 1: a2,a3 = 0; 2: a3 = 0, 3: all parameters endogenous )
         """
  
         # Model input Parameter
@@ -31,6 +33,7 @@ class OpinionFormation(object):
         self.alpha2 = alpha2
         self.alpha3 = alpha3 
         self.y      = y
+        self.model_type = model_type
         self.dx     = deltax
         self.dt     = deltat 
         
@@ -42,11 +45,9 @@ class OpinionFormation(object):
     # Helper Functions
     def integrate(self, x: np.array, y: np.array) -> float:
         """ Calculates the area under the curve for given coordinates
-
         Args:
             x (array): X-Coordinate
             y (array): Y-Coordinate
-
         Returns:
             float: The area under the curve
         """
@@ -55,83 +56,76 @@ class OpinionFormation(object):
     
     # Define the Model Functions
 
-    def influence_function_0(self, x:float) -> float:
+    def influence_function(self, x:float, y = 0, x_l = 0) -> float:
         """
-        Calculates the influence in the Case of no influence from output or momentum effects
+        Calculates the influence based on the point in space, the value of the makro time series and the laged point in space
 
         Args:
-            x (float): The point in space
+            x (float): Point in space 
+            y (float): Point in makro time series
+            x_l (float): laged point in space
 
         Returns:
             float: The value of the influence function
         """
-        return self.alpha0 + self.alpha1* x
-
-    def influence_function_1(self,x:float,y:float) -> float:
-        return self.alpha0 + self.alpha1 * x + self.alpha2 * y
-
-    def influence_function_2(self,x:float, x_1: float ,y:float) -> float:
-        return self.alpha0 + self.alpha1 * x + self.alpha2 * y + self.alpha3*(x - x_1)
+        if self.model_type == 0:
+            return self.alpha0 + self.alpha1* x
+        elif self.model_type == 1: 
+            return self.alpha0 + self.alpha1* x
+        elif self.model_type == 2: 
+            return self.alpha0 + self.alpha1 * x + self.alpha2 * y
+        elif self.model_type == 3: 
+            return self.alpha0 + self.alpha1 * x + self.alpha2 * y + self.alpha3*(x - x_l)
 
     def transition_rate_up(self, x: float) -> float:
         """ Calculates the Transition Probability for the whole socio-configuration to move upward
-
         Args:
             x (float): Point in space
-
         Returns:
             float: Transition Probability for a movement upward
         """
-        return self.N * (1-x) * self.nu * np.exp(self.influence_function_0(x))
+        return self.nu * (1-x)  * np.exp(self.influence_function(x))
     
     def transition_rate_down(self, x: float) -> float:
         """ Calculates the Transition Probability for the whole socio-configuration to move downward
-
         Args:
             x (float): Point in space
-
         Returns:
             float: Transition Probability for a movement downward
         """
-        return self.N * (1+x) * self.nu * np.exp((-1)*self.influence_function_0(x))
+        return  self.nu * (1+x)  * np.exp(((-1)*self.influence_function(x)))
     
     def drift(self, x: float) -> float:
         """
         The drift function is used to calculate the drift of a particle. 
-
         Args:
             x (float): Pass the current position of the particle
-
         Returns:
             float: The drift value
         """
         
-        return 1/self.N * (self.transition_rate_up(x) - self.transition_rate_down(x))
+        return (-1) * (self.transition_rate_up(x) - self.transition_rate_down(x))
     
     def diffusion(self, x: float) -> float:
         
         """ The diffusion function takes a value x and returns the change in that value after one time step.
-
         Args:
             x (float): The input to the diffusion function. This is typically the current position of the particle
-
         Returns:
             float: The output from the diffusion function
         
         """
-        return 1/(self.N**2)* (self.transition_rate_up(x) + self.transition_rate_down(x))
+        return 1/(2*self.N)* (self.transition_rate_up(x) + self.transition_rate_down(x))
     
     # Define the functions for the initial distribution 
     def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
         """
         The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
         It returns the value of probability density function for normal distribution at point x.
-
         Args:
             x (float): Represent the value of x_
             mean (float): Mean of the Distribution
             variance (float): Variance of the Distribution
-
         Returns:
             float: The value of the normal pdf at a given point
         """
@@ -141,12 +135,10 @@ class OpinionFormation(object):
         """
         The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
         It returns the value of probability density function for normal distribution at point x.
-
         Args:
             x (float): Represent the value of x_
             mean (float): Mean of the Distribution
             variance (float): Variance of the Distribution
-
         Returns:
             float: The value of the normal pdf at a given point
         """
@@ -157,7 +149,6 @@ class OpinionFormation(object):
             of the normal distribution with mean μ=0 and standard deviation σ=1.
         Args:
             x (float): Represent the value of x for which we want to calculate the probability
-
         Returns:
             float: The probability that a random variable x will be less than or equal to x
         """
@@ -175,22 +166,20 @@ class OpinionFormation(object):
         the change in price over time; diffusion is equal to volatility divided by square root of time;  
         
             F represents the cumulative density function for a standard normal distribution with mean 0 and variance 1.  
-
         Args:
             x (float): Pass the current value of x to the function
             x_0 (float): Define the mean of the normal distribution
             bound_right (float): Define the upper bound of the truncated normal distribution
             bound_left (float): Set the lower bound of the truncated normal distribution
-
         Returns:
             float: The truncated normal distribution for a given x and its parameters
         """
         
         # Initialize the Variables
             
-        drift = self.drift(x) 
+        drift = self.drift(x) *(-1)
             
-        diffusion =  self.diffusion(x)
+        diffusion =  self.diffusion(x) * 2
             
         normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
         
@@ -203,7 +192,6 @@ class OpinionFormation(object):
     
     def initialDistribution(self, x_initial:float, truncated: bool) -> np.array:
         """ Calculates the initial distribution of the probability
-
         Returns:
             array: The values of the initial Probability at t=0 for every x
         """
@@ -221,17 +209,14 @@ class OpinionFormation(object):
         """
         The CrankNicolson function takes in the initial conditions and sets up the characteristic matrix
          for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
-
         Args:
             x_0 (float): The initial condition 
             check_stability (bool): Check the stability of the flow matrix
             calc_dens (bool): Calculate the total Density
             converged (bool): Only return the converged PDF
-
         Raises:
             UnstableSolutionMethodError: Raises if the Solution is not stable
             WrongDensityValueError: Raises if the Area is lower than some eps 
-
         Returns:
             np.array: The probability distribution at time t for every point in the domain x
         """
@@ -243,45 +228,39 @@ class OpinionFormation(object):
         N = self.N 
         prob = self.prob
 
-        par_drift = -1/N
-        par_diffusion =1/(2) * 1/(N**2)
 
         # Initialize the Matrix for the solver 
-        a = np.zeros([len(x), len(x)])
-        b = np.zeros([len(x), len(x)])
-
+        a = np.zeros([len(x), len(x)]) # LHS Matrix
+        b = np.zeros([len(x), len(x)]) # RHS Matrix
+        
+        # Parameter
+        c = self.dt/(4*self.dx)
         # Fill the matrices
         for elem in range(len(x)):
-            drift_diag_a = 1 + dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem]) - self.transition_rate_down(x[elem])) + dt/(dx**2) * par_diffusion * (self.transition_rate_up(x[elem]) + self.transition_rate_down(x[elem]))
 
-            drift_diag_b = 1 - dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem]) - self.transition_rate_down(x[elem])) - dt/(dx**2) * par_diffusion * (self.transition_rate_up(x[elem]) + self.transition_rate_down(x[elem]))
-            
             if elem == 0:
-                a[elem, elem] = drift_diag_a
-                a[elem, elem+1] = (-1) * (dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem+1]) - self.transition_rate_down(x[elem+1])) \
-                    + dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem+1]) + self.transition_rate_down(x[elem+1])))
+                a[elem, elem] =  1 - c * ((-2)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
+                a[elem, elem+1] = (-1)*c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
 
-                b[elem, elem] = drift_diag_b
-                b[elem, elem+1] = (dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem+1]) - self.transition_rate_down(x[elem+1])) \
-                    + dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem+1]) + self.transition_rate_down(x[elem+1])))
+                b[elem, elem] = 1 + c * ((-2)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
+                b[elem, elem+1] = c * ( 2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
+
             
             elif elem == len(x)-1:
-                a[elem,elem-1] = (-1)* dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem-1]) + self.transition_rate_down(x[elem-1]))
-                a[elem, elem] = drift_diag_a
+                a[elem,elem-1] = (-1) * c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
+                a[elem, elem] = 1 - c*((-2)* self.diffusion(x = x[elem])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
 
-                b[elem,elem-1] = dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem-1]) + self.transition_rate_down(x[elem-1]))
-                b[elem, elem] = drift_diag_b
+                b[elem,elem-1] = c * ( 2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
+                b[elem, elem] = 1 + c*((-2)* self.diffusion(x = x[elem])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
                             
             else:                 
-                a[elem,elem-1] = (-1)* dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem-1]) + self.transition_rate_down(x[elem-1]))
-                a[elem, elem] = drift_diag_a
-                a[elem, elem+1] = (-1) * (dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem+1]) - self.transition_rate_down(x[elem+1])) \
-                    + dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem+1]) + self.transition_rate_down(x[elem+1])))  
+                a[elem,elem-1] = (-1) * c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
+                a[elem, elem] = 1 - c * ((-4)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) - self.drift(x = x[elem-1]))/2)
+                a[elem, elem+1] = (-1)*c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
 
-                b[elem,elem-1] = dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem-1]) + self.transition_rate_down(x[elem-1]))
-                b[elem, elem] = drift_diag_b
-                b[elem, elem+1] = (dt/(2*dx) * par_drift * (self.transition_rate_up(x[elem+1]) - self.transition_rate_down(x[elem+1])) \
-                    + dt/(2*(dx**2)) * par_diffusion * (self.transition_rate_up(x[elem+1]) + self.transition_rate_down(x[elem+1])))
+                b[elem,elem-1] = c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
+                b[elem, elem] = 1 + c * ((-4)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) - self.drift(x = x[elem-1]))/2)
+                b[elem, elem+1] = c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
         # Inverse of the Matrix 
         a_b = np.matmul(np.linalg.inv(a),b)
         
@@ -290,7 +269,7 @@ class OpinionFormation(object):
 
         if fast_comp == True: 
             
-            x = np.zeros(len(self.t))
+           # x = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
                 self.prob[:,t] =  np.abs(np.matmul(a_b,self.prob[:,t-1]))  
             
@@ -320,24 +299,14 @@ class OpinionFormation(object):
                     return area, self.prob[:,-1]
             else: 
                 x = np.zeros(len(self.t))
+                #import matplotlib.pyplot as plt 
                 for t in range(1,len(self.t)):
-                    self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])  
+                    self.prob[:,t] =  np.abs(np.matmul(a_b,self.prob[:,t-1]))
+                    # plt.plot(prob[:,t])
+                    # plt.show()
 
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
                 else: 
                     
                     return self.prob[:,-1]
-        
-            
-
-
-
-
-
-
-
-
-
-    
-    

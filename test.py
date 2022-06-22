@@ -5,78 +5,63 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import random
+import montecarlo
+import estimation
+import pandas as pd 
 
 #######################################################################################################################################
 #  Plot the transitional Density 
 #######################################################################################################################################
 
 
-test = model.OpinionFormation(N = 175, T = 200, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.001, deltat = 1/16) #
+# test = model.OpinionFormation(N = 175, T = 40, nu = 0.8 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, model_type =0) #
 
-test_1 = model.OpinionFormation(N = 175, T = 200, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.001, deltat = 1/16) 
-test_2 = model.OpinionFormation(N = 175, T = 200, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.001, deltat = 1/16)
+# test_1 = model.OpinionFormation(N = 175, T = 400, nu = 0.8 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, model_type =0)
+# test_2 = model.OpinionFormation(N = 175, T = 4000, nu = 0.8 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, model_type =0)
 
-prob, prob_end = test.CrankNicolson(x_0 = 0,check_stability = False, calc_dens = False, converged =  False, fast_comp = False)
-prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = 0, check_stability = False, calc_dens = False, converged =  False, fast_comp = False)
-prob_2,prob_end_2 = test_2.CrankNicolson(x_0 = 0, check_stability = False, calc_dens = False, converged =  False, fast_comp = False)
+# prob_end = test.CrankNicolson(x_0 = 0,check_stability = False, calc_dens = False, converged =  False, fast_comp = True)
+# prob_end_1 = test_1.CrankNicolson(x_0 = 0,check_stability = False, calc_dens = False, converged =  False, fast_comp = True)
+# prob_end_2 = test_2.CrankNicolson(x_0 = 0,check_stability = False, calc_dens = False, converged =  False, fast_comp = True)
 
 
-plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
-plot_0.surface_plot()
+# # plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
+# # plot_0.surface_plot()
 
-plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
-plot_1.surface_plot()
+# # plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+# # plot_1.surface_plot()
 
-#plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
-#plot_2.surface_plot()
+# # plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
+# # plot_2.surface_plot()
 
-#plt.plot(prob_end)
-#plt.plot(prob_end_1)
-#plt.plot(prob_end_2)
-#plt.show()
-#######################################################################################################################################
-# Generate Pseudo Time Series
-#######################################################################################################################################
-  
-
-simulation = sim.Simulation(N = 21, T = 20, nu = 0.13039116 , alpha0 = 0.00195546, alpha1 = 1.13044364, deltax = 0.0025, deltat = 1/128, seed = 150)
-d = simulation.eulermm(-0.59)
-
-set = d.tolist()
-
-# plot_1 = plot.Plotting2D(np.arange(0, simulation.T, 1), d)
-# plot_1.sim_plot()
+# plt.plot(prob_end)
+# plt.plot(prob_end_1)
+# plt.plot(prob_end_2)
+# plt.show()
 
 
 
 
 #######################################################################################################################################
-# Test Multiprocessing
+#  BHHH Estimation Test
 #######################################################################################################################################
 
-import multiprocessing as mp
-test = model.OpinionFormation(N = 175, T = 10, nu = 3, alpha0 = 0.0, alpha1 = 1.2, deltax = 0.002, deltat = 1/16)
-    
-# if __name__ == '__main__':   
+# #Simulated data
+# sim_0 = sim.Simulation(N = 175, T = 600, nu = 0.78 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 0.01, model_type =0, seed = 3)  
+# test_data_0 = sim_0.simulation(-0.59, sim_length = 200)
+# plt.plot(test_data_0)
+# plt.show()
+
+# mC = montecarlo.MonteCarlo(numSim= 1, estimation= estimation.Estimation(test_data_0, multiprocess= False, model_type= 0), parallel= False, real_data = False)
+# mC.run()
 
 
-#     simulation = sim.Simulation(N = 21, T = 20, nu = 0.13039116 , alpha0 = 0.00195546, alpha1 = 1.13044364, deltax = 0.0025, deltat = 1/128, seed = 150)
-#     d = simulation.eulermm(-0.59)
 
-#     logf = np.zeros(len(d))
+training_data_x = pd.read_excel("zew.xlsx", header=None)
+X_train= training_data_x[1].to_numpy()
+X_train= X_train[~np.isnan(X_train)]
+plt.plot(X_train)
+plt.show()
 
-#     set = d.tolist()
-    
-#     pool = mp.Pool(mp.cpu_count())
-#     pdf = pool.map(test.CrankNicolson, set)
-#     pool.close()  
+mC = montecarlo.MonteCarlo(numSim= 1, estimation= estimation.Estimation(X_train, multiprocess= False, model_type= 0), parallel= False, real_data = True)
+mC.run()
 
-#     pdf = np.array(pdf)
-#     print(np.array(pdf))
-
-#     for elem in range(len(pdf)-1):
-#         for x in range(len(test.x)):
-#             if test.x[x] == np.around(d[elem+1],3):
-#                 logf[elem] = (-1)* np.log(pdf[elem,x])
-#     logL = np.sum(logf)
-#     print("The Log Likelihodd is: " + str(logL)) 

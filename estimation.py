@@ -13,9 +13,10 @@ from optimparallel import minimize_parallel
 class Estimation(object):
     
     ''' Class for the Estimation of the Social Model'''
-    def __init__(self, time_series: np.array, multiprocess : bool) -> None: 
+    def __init__(self, time_series: np.array, multiprocess : bool, model_type: int) -> None: 
         self.time_series = time_series 
         self.multiprocess = multiprocess
+        self.model_type = model_type
         
 
     def logL(self, guess:tuple) -> np.array:
@@ -35,15 +36,29 @@ class Estimation(object):
         time_series = self.time_series
     
         # Parameters to be estimated
-        nu, alpha0, alpha1 = guess
+        if self.model_type == 0:
+            nu, alpha0, alpha1 = guess
+        elif self.model_type == 1: 
+            nu, alpha0, alpha1, N = guess
+        elif self.model_type == 2: 
+            nu, alpha0, alpha1, N, alpha2= guess
+        elif self.model_type == 3: 
+            nu, alpha0, alpha1, N, alpha2, alpha3= guess
 
         print("The Minimization_Guess is: " + str(guess))
 
         # The Model
-        mod = model.OpinionFormation(N = 50, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.005, deltat= 1/16)
+        if self.model_type == 0:
+            mod = model.OpinionFormation(N = 175, T = 60, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 1: 
+            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 2: 
+            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 3: 
+            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
-        logf = np.zeros(len(time_series))
+        logf = np.zeros(len(time_series)-1)
 
         if self.multiprocess == True:
             # Time Series to List
@@ -71,10 +86,13 @@ class Estimation(object):
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2):
+                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1],2) + 0.01:
                         logf[elem] = np.log((np.abs(pdf[x])))
-        
-            logL = np.sum(logf)
+            if np.all(logf == 0):
+                print("Not all likelihoods are stored")
+                pass
+            else:
+                logL = np.sum(logf)
             
             print("The Log Likelihood is: " + str(logL)) 
             end = time.time()
@@ -118,7 +136,7 @@ class Estimation(object):
         guess_in = list(guess_initial)
         
         # Initialize the Gradient Column Vector
-        g = np.zeros([4,1]) # The Gradient is a column vector
+        g = np.zeros([3,1]) # The Gradient is a column vector
 
         # Log Likelihood of the guess
         logL = self.logL(guess_in)
@@ -168,21 +186,32 @@ class Estimation(object):
         Returns:
             tuple: he optimized parameters, the log likelihood value and the number of iterations required to reach convergence
         """
-        
         # Unpack the inital guess
-        nu, alpha0, alpha1, N = initial_guess
+        if self.model_type == 0:
+            nu, alpha0, alpha1 = initial_guess
+        elif self.model_type == 1: 
+            nu, alpha0, alpha1, N = initial_guess
+        elif self.model_type == 2: 
+            nu, alpha0, alpha1, N, alpha2= initial_guess
+        elif self.model_type == 3: 
+            nu, alpha0, alpha1, N, alpha2, alpha3= initial_guess
+        
         print("The Initial guess" + str(initial_guess))
         
         print('Starting:', mp.current_process().name)
         start = time.time()
-        
-        # Minimite the negative Log Likelihood Function exogenous N
-        res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), (0, None)],  callback=None, options={'gtol': 1e-03, 'eps': 1e-02, 'maxiter': 100, 'iprint': -1})
 
-        # Minimite the negative Log Likelihood Function endogenous N
-        #res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
-   
-        #res = minimize_parallel(self.neglogL, x0 =(nu, alpha0 , alpha1, N) )
+        # Minimite the negative Log Likelihood Function 
+        if self.model_type == 0:
+            #exogenous N
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 3), (-0.5, 1), (0.01, 3)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+        elif self.model_type == 1: 
+            # endogenous N 
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        elif self.model_type == 2: 
+            pass
+        elif self.model_type == 3: 
+            pass
         
         print('Exiting :', mp.current_process().name)
 
@@ -198,7 +227,7 @@ class Estimation(object):
 #########################################################################################################################################################################################
 
 
-    def bhhh(self, initial_guess: tuple, tolerance_level: float, max_iter:int) -> np.array:
+    def solver_bhhh(self, initial_guess: tuple, tolerance_level: float, max_iter:int) -> np.array:
         """
         The bhhh function takes in the initial guess, tolerance level and maximum number of iterations as input. 
         It returns the final estimate after performing bhhh method for a given number of iterations.
@@ -217,7 +246,7 @@ class Estimation(object):
         ###########################
 
         # Calculate the initial Gradient
-        g_in = self.gradient(initial_guess, eps = 0.01)
+        g_in = self.gradient(np.concatenate(initial_guess).ravel(), eps = 0.01)
         
         # Calculate the initial Variance Covariance Matrix
         r_t_in = self.cov_matrix(g_in)
@@ -228,16 +257,16 @@ class Estimation(object):
             pass
         else: 
             print("Covariance Matrix is singular ")
-            r_t_in = np.array([[1000, 0, 0, 0], [0, 1000, 0, 0], [0, 0, 1000, 0], [0, 0, 0, 1000]])
+            r_t_in = np.array([[1000, 0, 0], [0, 1000, 0], [0, 0, 1000]]) # Reshape according to number of
         
         # Calculate the initial direction vector
-        direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(4,)
+        direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(3,) # Change according to the number of parameters 
         
         lamb =  1
         delta = 0.25
 
         # Initial Beta         
-        beta_in= np.array(initial_guess)
+        beta_in= np.concatenate(initial_guess).ravel()
 
         for it in range(max_iter):
             print("Number of Iterations:" + str(it))
@@ -276,10 +305,10 @@ class Estimation(object):
                     pass
                 else: 
                     print("Covariance Matrix is singular ")
-                    r_t = np.array([[10000, 0, 0, 0], [0, 100000, 0, 0], [0, 0, 10000, 0], [0, 0, 0, 1000]])
+                    r_t = np.array([[10000, 0, 0], [0, 10000, 0], [0, 0, 1000]])
                 
                 # Calculate the initial direction vector
-                direc = np.dot(np.linalg.inv(r_t),g).reshape(4,)
+                direc = np.dot(np.linalg.inv(r_t),g).reshape(3,)
 
                 # Check for convergence
                 dum = np.zeros(len(direc))

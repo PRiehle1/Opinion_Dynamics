@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 class Simulation(model.OpinionFormation):
 
-    def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float , alpha3:float, y:float, deltax: float, deltat: float, seed) -> None: 
+    def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float , alpha3:float, y:float, model_type:int, deltax: float, deltat: float, seed:int) -> None: 
         """
         Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
 
@@ -17,15 +17,18 @@ class Simulation(model.OpinionFormation):
             nu (float): Flexibility Parameter
             alpha0 (float): Preference Parameter
             alpha1 (float): Adaptation Parameter
+            alpha2 (float):
+            alpha3 (float):
+            y (float): 
+            model_type(int):
             deltax (float): Discretization in space
             deltat (float): Discretization in time
-            bright (float): Boundary condition right
-            bleft (float):  Boundary condition left
+
 
         Return: 
             A reference to the newly created object
         """
-        super().__init__(N, T, nu, alpha0, alpha1, alpha2, alpha3, y, deltax, deltat) 
+        super().__init__(N, T, nu, alpha0, alpha1, alpha2, alpha3, y, deltax, deltat, model_type) 
         self.seed = seed
         
     def eulermm(self, ic: float)    -> np.array: 
