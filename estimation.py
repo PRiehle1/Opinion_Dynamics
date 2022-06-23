@@ -49,7 +49,7 @@ class Estimation(object):
 
         # The Model
         if self.model_type == 0:
-            mod = model.OpinionFormation(N = 175, T = 60, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = model.OpinionFormation(N = 175, T = 30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
@@ -86,7 +86,7 @@ class Estimation(object):
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1],2) + 0.01:
+                    if mod.x[x] == np.around(time_series[elem+1],2):
                         logf[elem] = np.log((np.abs(pdf[x])))
             if np.all(logf == 0):
                 print("Not all likelihoods are stored")

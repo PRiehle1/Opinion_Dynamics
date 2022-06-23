@@ -110,7 +110,7 @@ class MonteCarlo(object):
             for i in range(self.numSim):
                 
                 if self.estimation.model_type == 0:
-                    init_guess = (1 + np.random.normal(0, 0.3, 1), 0  + np.random.normal(0, 0.1, 1), 1.2 + np.random.normal(0, 0.2, 1))
+                    init_guess = (1 + np.random.normal(0, 0.03, 1), 0  + np.random.normal(0, 0.01, 1), 1.2 + np.random.normal(0, 0.02, 1))
                 elif self.estimation.model_type == 1: 
                     init_guess = (0.15 + np.random.normal(0, 0.1, 1), 0.09  + np.random.normal(0, 0.01, 1), 0.9 + np.random.normal(0, 0.1, 1), 21.21 + np.random.normal(0, 5, 1))
                 elif self.estimation.model_type == 2: 
