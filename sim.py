@@ -110,5 +110,6 @@ class Simulation(model.OpinionFormation):
                     if cdf_inv[x] == closest_value:
                         next_value = self.x[x]
                 time_series.append(next_value)
+                
         return time_series
     

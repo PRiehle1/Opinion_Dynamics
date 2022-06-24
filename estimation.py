@@ -10,12 +10,12 @@ from optimparallel import minimize_parallel
 
 # Define the class 
 
-class Estimation(object):
+class Estimation():
     
     ''' Class for the Estimation of the Social Model'''
-    def __init__(self, time_series: np.array, multiprocess : bool, model_type: int) -> None: 
+    def __init__(self, time_series: np.array, parallel : bool, model_type: int) -> None: 
         self.time_series = time_series 
-        self.multiprocess = multiprocess
+        self.parallel = parallel
         self.model_type = model_type
         
 
@@ -49,22 +49,22 @@ class Estimation(object):
 
         # The Model
         if self.model_type == 0:
-            mod = model.OpinionFormation(N = 175, T = 30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = model.OpinionFormation(N = 175, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = model.OpinionFormation(N = N, T = 20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
 
-        if self.multiprocess == True:
+        if self.parallel == True:
             # Time Series to List
-            time_series_list = self.time_series
+            time_series_list = list(self.time_series)
             # Multiprocessing 
-            pool = mp.Pool(4)
+            pool = mp.Pool(12)
 
             # Calculate the PDF for all values in the Time Series
             pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list)))
@@ -73,9 +73,14 @@ class Estimation(object):
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2):
+                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1]+0.01,2 ) :
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
-            logL = np.sum(logf)
+           
+            if np.all(logf == 0):
+                print("Not all likelihoods are stored")
+                pass
+            else:
+                logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
         
         else:   
@@ -204,7 +209,7 @@ class Estimation(object):
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 3), (-0.5, 1), (0.01, 3)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, None), (-2, 2), (0.01, None)],  callback=None, options={'maxiter': 100, 'iprint': -1})
         elif self.model_type == 1: 
             # endogenous N 
             res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})

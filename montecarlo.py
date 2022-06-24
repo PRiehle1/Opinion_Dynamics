@@ -4,13 +4,15 @@ import numpy as np
 import multiprocessing
 import pandas as pd
 import os
+import model
 
 
-class MonteCarlo(object):
+class MonteCarlo():
 
-    def __init__(self, numSim: int,  estimation: object, parallel: bool, real_data: bool) -> None:
+    def __init__(self, numSim: int, model: object, estimation: object, parallel: bool, real_data: bool) -> None:
         self.numSim = numSim
         self.estimation = estimation
+        self.model = model
         self.parallel = parallel
         self.real_data = real_data
   
@@ -104,19 +106,19 @@ class MonteCarlo(object):
                 init_guess = np.vstack([in_est, np.block(list(init_guess))])
                 np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", init_guess, delimiter=",")
 
-    def run(self) -> np.array:
+    def run(self, init_guess) -> np.array:
 
         if self.parallel == False:
             for i in range(self.numSim):
                 
-                if self.estimation.model_type == 0:
-                    init_guess = (1 + np.random.normal(0, 0.03, 1), 0  + np.random.normal(0, 0.01, 1), 1.2 + np.random.normal(0, 0.02, 1))
-                elif self.estimation.model_type == 1: 
-                    init_guess = (0.15 + np.random.normal(0, 0.1, 1), 0.09  + np.random.normal(0, 0.01, 1), 0.9 + np.random.normal(0, 0.1, 1), 21.21 + np.random.normal(0, 5, 1))
-                elif self.estimation.model_type == 2: 
-                    pass
-                elif self.estimation.model_type == 3: 
-                    pass
+                # if self.estimation.model_type == 0:
+                #     init_guess = (0.78 + np.random.normal(0, 0.03, 1), 0.01  + np.random.normal(0, 0.001, 1), 1.18 + np.random.normal(0, 0.02, 1))
+                # elif self.estimation.model_type == 1: 
+                #     init_guess = (0.15 + np.random.normal(0, 0.1, 1), 0.09  + np.random.normal(0, 0.01, 1), 0.9 + np.random.normal(0, 0.1, 1), 21.21 + np.random.normal(0, 5, 1))
+                # elif self.estimation.model_type == 2: 
+                #     pass
+                # elif self.estimation.model_type == 3: 
+                #     pass
                 
                 self.estim(tuple(init_guess))
         else: 
@@ -124,17 +126,68 @@ class MonteCarlo(object):
             for i in range(int(self.numSim/5)):
                 jobs = []
                 for d in range(5):
-                    if self.estimation.model_type == 0:
-                        init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1))
-                    elif self.estimation.model_type == 1: 
-                        init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1), 50 + np.random.normal(0, 5, 1))
-                    elif self.estimation.model_type == 2: 
-                        pass
-                    elif self.estimation.model_type == 3: 
-                        pass
+                    # if self.estimation.model_type == 0:
+                    #     init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1))
+                    # elif self.estimation.model_type == 1: 
+                    #     init_guess = (1 + np.random.normal(0, 0.1, 1), 0  + np.random.normal(0, 0.01, 1), 0.8 + np.random.normal(0, 0.1, 1), 50 + np.random.normal(0, 5, 1))
+                    # elif self.estimation.model_type == 2: 
+                    #     pass
+                    # elif self.estimation.model_type == 3: 
+                    #     pass
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#
 
                 for proc in jobs:
                     proc.join()
+
+if __name__ == '__main__':
+
+    # Load the Training Data 
+    import pandas as pd
+    from sympy import *
+    import multiprocessing
+    import sim 
+
+    # First Set of Data 
+
+    # Simulated data
+    sim_1 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 3)  
+    test_data_1 = sim_1.simulation(0, sim_length = 200)
+
+    # Set up the Monte Carlo Estimation
+    mC = MonteCarlo(numSim= 20, model = model.OpinionFormation , estimation= estimation.Estimation(test_data_1, parallel= True,model_type=0), parallel= False, real_data= False)
+    mC.run(init_guess= (3,0,0.8))
+
+    #Second Set of Data 
+
+    # Simulated data
+    sim_2 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    test_data_2 = sim_2.simulation(0, sim_length = 200)
+
+    # Set up the Monte Carlo Estimation
+    mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= True, model_type= 0), parallel= False, real_data = False)
+    mC.run(init_guess= (3,0.2,0.8))
+
+    # Third Set of Data 
+
+    # Simulated data
+    sim_3= sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    test_data_3 = sim_3.simulation(0, sim_length = 200)
+
+
+    # Set up the Monte Carlo Estimation
+    mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), parallel= False, real_data = False)
+    mC.run(init_guess= (3,0,1.2))
+
+    # Fourth Set of Data 
+
+    # Simulated data
+    sim_4 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    test_data_4 = sim_4.simulation(0, sim_length = 200)
+
+
+    # Set up the Monte Carlo Estimation
+    mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_4, parallel= True, model_type= 0), parallel= False, real_data = False)
+    mC.run(init_guess= (3,0.2,1.2))
+

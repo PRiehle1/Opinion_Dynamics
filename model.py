@@ -5,7 +5,7 @@ from errors import *
 from scipy.integrate import simps
 from tqdm import tqdm
 
-class OpinionFormation(object):
+class OpinionFormation():
     
     # Initialize the class
     def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, y: np.array, deltax: float, deltat: float, model_type: int) -> None:
