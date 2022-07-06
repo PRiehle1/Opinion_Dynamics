@@ -1,4 +1,5 @@
 # Class for Monte Carlo Estimation of the Time Series: 
+from mimetypes import init
 import estimation
 import numpy as np
 import multiprocessing
@@ -9,16 +10,19 @@ from model import OpinionFormation
 
 class MonteCarlo():
 
-    def __init__(self, numSim: int, model: object, estimation: object, parallel: bool, real_data: bool) -> None:
+    def __init__(self, numSim: int, model: object, estimation: object, multiprocess: bool, real_data: bool) -> None:
         self.numSim = numSim
         self.estimation = estimation
         self.model = model
-        self.parallel = parallel
+        self.multiprocess = multiprocess
         self.real_data = real_data
   
 
     def estim(self, init_guess) -> np.array:
         #### Solver BFGS 
+        init_guess = list(init_guess)
+        for elem in range(len(init_guess)):
+            init_guess[elem] = init_guess[elem] + np.random.normal(0,0.05)
         res = self.estimation.solver_BFGS(init_guess)
 
         #res = self.estimation.solver_bhhh(init_guess, tolerance_level= 0.0001, max_iter= 40)
@@ -108,16 +112,17 @@ class MonteCarlo():
 
     def run(self, init_guess) -> np.array:
 
-        if self.parallel == False:
+        if self.multiprocess == False:
+
             for i in range(self.numSim):
 
                 self.estim(tuple(init_guess))
         
         else: 
             
-            for i in range(int(self.numSim/5)):
+            for i in range(int(self.numSim/8)):
                 jobs = []
-                for d in range(5):
+                for d in range(8):
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#
@@ -133,54 +138,66 @@ if __name__ == '__main__':
     import multiprocessing
     import sim 
 
-    # First Set of Data 
+    # # First Set of Data 
 
     # # Simulated data
-    # sim_1 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/16, model_type =0, seed = 3)  
+    # sim_1 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 3)  
     # test_data_1 = sim_1.simulation(0, sim_length = 200)
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 20, model = OpinionFormation , estimation= estimation.Estimation(test_data_1, parallel= False,model_type=0), parallel= False, real_data= False)
+    # mC = MonteCarlo(numSim= 40, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
     # mC.run(init_guess=(3,0,0.8))
 
     # #Second Set of Data 
 
     # # Simulated data
-    # sim_2 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    # sim_2 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
     # test_data_2 = sim_2.simulation(0, sim_length = 200)
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= True, model_type= 0), parallel= False, real_data = False)
+    # mC = MonteCarlo(numSim= 40 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= False, model_type= 0), multiprocess= True, real_data = False)
     # mC.run(init_guess= (3,0.2,0.8))
 
     # # Third Set of Data 
 
     # # Simulated data
-    # sim_3= sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    # sim_3= sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
     # test_data_3 = sim_3.simulation(0, sim_length = 200)
 
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), parallel= False, real_data = False)
+    # mC = MonteCarlo(numSim= 40 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
     # mC.run(init_guess= (3,0,1.2))
 
     # # Fourth Set of Data 
 
     # # Simulated data
-    # sim_4 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    # sim_4 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
     # test_data_4 = sim_4.simulation(0, sim_length = 200)
 
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 40 , model = model.OpinionFormation ,estimation= estimation.Estimation(test_data_4, parallel= True, model_type= 0), parallel= False, real_data = False)
+    # mC = MonteCarlo(numSim= 40 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_4, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
     # mC.run(init_guess= (3,0.2,1.2))
 
-    #Real Data 
-    from data_reader import data_reader
+    # #Real Data 
+    # from data_reader import data_reader
 
-    data = data_reader(time_period= 175)
-    zew = data.zew()/100
+    # data = data_reader(time_period= 175)
+    # zew = data.zew()/100
+    # ip = data.industrial_production()
+
+    # # # Model with exogenous N
+    # # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 0), multiprocess= False, real_data = True)
+    # # mC.run(init_guess= (0.8,0.01,1.2))
+
+    # # Model with endogenous N 
+    # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 1), multiprocess= False, real_data = True)
+    # mC.run(init_guess= (0.15,0.1,0.99, 21))
+
+    # # # Model with industrial production
+    # # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 2), multiprocess= False, real_data = True)
+    # # mC.run(init_guess= (0.2,0.1,1, 20, (-4.5)))
+
     
-    mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, parallel= False, model_type= 1), parallel= False, real_data = True)
-    mC.run(init_guess= (0.2,0.1,1, 25))
 
