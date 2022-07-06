@@ -95,7 +95,7 @@ class OpinionFormation():
         """
         return self.nu * (1+x)  * np.exp(((-1)*self.influence_function(x)))
     
-    def drift(self, x: float) -> float:
+    def drift(self, x: float, y=0, x_l = 0 ) -> float:
         """
         The drift function is used to calculate the drift of a particle. 
         Args:
@@ -103,12 +103,18 @@ class OpinionFormation():
         Returns:
             float: The drift value
         """
+        if self.model_type == 0:
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
+        elif self.model_type == 1: 
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
+        elif self.model_type == 2: 
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 *y))
+        elif self.model_type == 3: 
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)))   
         
-        return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
-        #-2* self.nu *(np.tanh(self.alpha0+self.alpha1*x)-x)*np.cosh(self.alpha0 + self.alpha1*x)
-        #(self.transition_rate_up(x) - self.transition_rate_down(x))
+
     
-    def diffusion(self, x: float) -> float:
+    def diffusion(self, x: float, y = 0, x_l = 0) -> float:
         
         """ The diffusion function takes a value x and returns the change in that value after one time step.
         Args:
@@ -117,9 +123,16 @@ class OpinionFormation():
             float: The output from the diffusion function
         
         """
-        return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
-        #  2* (self.nu/self.N) *(np.cosh(self.alpha0+self.alpha1*x)-x*np.sinh(self.alpha0 + self.alpha1*x))
-        # 1/(self.N)* (self.transition_rate_up(x) + self.transition_rate_down(x))
+        if self.model_type == 0:
+            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
+        elif self.model_type == 1: 
+            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
+        elif self.model_type == 2: 
+            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2 *y))
+        elif self.model_type == 3: 
+            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l))) 
+        
+
     
     # Define the functions for the initial distribution 
     def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
@@ -158,7 +171,7 @@ class OpinionFormation():
         """
         return (1.0 + erf(x / sqrt(2.0))) / 2.0
     
-    def truncatednormalDistributionPDF(self, x: float, x_0:float, bound_right: float, bound_left: float) -> float: 
+    def truncatednormalDistributionPDF(self, x: float, x_0:float, bound_right: float, bound_left: float, y = 0, x_l = 0) -> float: 
         """
         The truncatednormalDistributionPDF function takes in the following parameters: 
         x, x_0, bound_right, and bound_left. It returns a float that represents the value of 
@@ -181,9 +194,9 @@ class OpinionFormation():
         
         # Initialize the Variables
             
-        drift = self.drift(x) 
+        drift = self.drift(x, y, x_l) 
             
-        diffusion =  1/self.N * self.diffusion(x) 
+        diffusion =  1/self.N * self.diffusion(x, y, x_l) 
             
         normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
         
@@ -194,7 +207,7 @@ class OpinionFormation():
         
         return trunormalDist
     
-    def initialDistribution(self, x_initial:float, truncated: bool) -> np.array:
+    def initialDistribution(self, x_initial:float, truncated: bool, y = 0, x_l = 0) -> np.array:
         """ Calculates the initial distribution of the probability
         Returns:
             array: The values of the initial Probability at t=0 for every x
@@ -205,11 +218,11 @@ class OpinionFormation():
             if truncated == True:
                 dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
             else: 
-                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i]) * self.dt, variance= self.diffusion(self.x[i])*self.dt ) 
+                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i], y = y, x_l = x_l) * self.dt, variance= self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt ) 
         return dummy/np.sum(dummy)
     
     # Define the functions for the solution of the partial differential equaution
-    def CrankNicolson(self, x_0:float, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
+    def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
         """
         The CrankNicolson function takes in the initial conditions and sets up the characteristic matrix
          for a Crank Nicolson simulation. It then solves for each time step using a linear algebra solver.
@@ -242,9 +255,9 @@ class OpinionFormation():
         p2 = self.dt/(4*self.N*(self.dx**2))
         
         def Q(x):
-            return self.diffusion(x)
+            return self.diffusion(x, y, x_l)
         def K(x):
-            return self.drift(x) 
+            return self.drift(x, y, x_l) 
 
         # Fill the matrices
         for elem in range(len(x)):

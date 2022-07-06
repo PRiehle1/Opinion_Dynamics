@@ -3,7 +3,8 @@ from tqdm import tqdm
 import time
 import numpy as np
 from model import OpinionFormation
-from scipy.optimize import minimize, dual_annealing
+from scipy.optimize import minimize, dual_annealing, basinhopping
+
 import multiprocessing as mp
 from optimparallel import minimize_parallel
 
@@ -13,10 +14,12 @@ from optimparallel import minimize_parallel
 class Estimation():
     
     ''' Class for the Estimation of the Social Model'''
-    def __init__(self, time_series: np.array, parallel : bool, model_type: int) -> None: 
+    def __init__(self, time_series: np.array,multiprocess : bool, model_type: int, y = 0, x_l = 0) -> None: 
         self.time_series = time_series 
-        self.parallel = parallel
+        self.multiprocess = multiprocess
         self.model_type = model_type
+        self.y = y
+        self.x_l = x_l
         
 
     def logL(self, guess:tuple) -> np.array:
@@ -33,6 +36,8 @@ class Estimation():
         """
         # Times Series to be estimated
         time_series = self.time_series
+        y = self.y
+        x_l = self.x_l
     
         # Parameters to be estimated
         if self.model_type == 0:
@@ -48,25 +53,40 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T = 30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 50, T =100 , nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
             mod = OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
 
-        if self.parallel == True:
+        if self.multiprocess == True:
             # Time Series to List
-            time_series_list = list(self.time_series)
+            time_series_list = list(time_series)
+
             # Multiprocessing 
-            pool = mp.Pool(12)
+            pool = mp.Pool(8)
 
             # Calculate the PDF for all values in the Time Series
-            pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list)))
+            if self.model_type == 0:
+                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(time_series_list))))
+            elif self.model_type == 1: 
+                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(time_series_list))))
+            elif self.model_type == 2: 
+                # y to List
+                y_list = list(y)
+                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(tuple(time_series_list), tuple(y_list)))))
+            elif self.model_type == 3: 
+                # y to List
+                y_list = list(y)
+                # Lagged x to list 
+                x_l_list = list(x_l)
+                pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list, y_list, x_l_list)))
+            
             pool.close()  
             pdf = np.array(pdf)
 
@@ -87,7 +107,15 @@ class Estimation():
 
             for elem in tqdm(range(len(time_series)-1)):
                 # Solve the Fokker Plank Equation: 
-                pdf = mod.CrankNicolson(x_0 = time_series[elem])
+                if self.model_type == 0:
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem])
+                elif self.model_type == 1: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem])
+                elif self.model_type == 2: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem])
+                elif self.model_type == 3: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
+           
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
                     if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1]+0.01,2 ):
@@ -208,12 +236,14 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
         elif self.model_type == 1: 
+            print("Iam here")
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+        
         elif self.model_type == 2: 
-            pass
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None), (None, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
         elif self.model_type == 3: 
             pass
         
