@@ -93,7 +93,7 @@ class OpinionFormation():
         Returns:
             float: Transition Probability for a movement downward
         """
-        return  self.nu * (1+x)  * np.exp(((-1)*self.influence_function(x)))
+        return self.nu * (1+x)  * np.exp(((-1)*self.influence_function(x)))
     
     def drift(self, x: float) -> float:
         """
@@ -104,7 +104,9 @@ class OpinionFormation():
             float: The drift value
         """
         
-        return (self.transition_rate_up(x) - self.transition_rate_down(x))
+        return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
+        #-2* self.nu *(np.tanh(self.alpha0+self.alpha1*x)-x)*np.cosh(self.alpha0 + self.alpha1*x)
+        #(self.transition_rate_up(x) - self.transition_rate_down(x))
     
     def diffusion(self, x: float) -> float:
         
@@ -115,7 +117,9 @@ class OpinionFormation():
             float: The output from the diffusion function
         
         """
-        return 1/(self.N)* (self.transition_rate_up(x) + self.transition_rate_down(x))
+        return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
+        #  2* (self.nu/self.N) *(np.cosh(self.alpha0+self.alpha1*x)-x*np.sinh(self.alpha0 + self.alpha1*x))
+        # 1/(self.N)* (self.transition_rate_up(x) + self.transition_rate_down(x))
     
     # Define the functions for the initial distribution 
     def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
@@ -179,7 +183,7 @@ class OpinionFormation():
             
         drift = self.drift(x) 
             
-        diffusion =  self.diffusion(x) 
+        diffusion =  1/self.N * self.diffusion(x) 
             
         normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
         
@@ -234,64 +238,40 @@ class OpinionFormation():
         b = np.zeros([len(x), len(x)]) # RHS Matrix
         
         # Parameter
-        c = self.dt/(4*self.dx)
-        p1 = self.dt/(4*self.dx)
-        p2 = self.dt/(2*self.dx**2)
+        p1 = self.dt/(2*self.dx)
+        p2 = self.dt/(4*self.N*(self.dx**2))
         
-        def g(x):
-            return 1/2 * self.diffusion(x)
-        def mu(x):
-            return (-1) * self.drift(x) 
+        def Q(x):
+            return self.diffusion(x)
+        def K(x):
+            return self.drift(x) 
 
         # Fill the matrices
         for elem in range(len(x)):
             if elem == 0:
-                a[elem, elem] =   (1 + 2*p2*g(x = x[elem]))
-                a[elem, elem+1] = -p1 * mu(x = x[elem+1]) - p2* g(x = x[elem+1])
+                a[elem, elem] =   1 + 2*p2*Q(x[elem])
+                a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
 
-                b[elem, elem] = (1 - 2*p2*g(x = x[elem]))
-                b[elem, elem+1] = p1 * mu(x = x[elem+1]) + p2* g(x = x[elem+1])
+                b[elem, elem] = 1 - 2*p2*Q(x[elem])
+                b[elem, elem+1] = -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
 
             
             elif elem == len(x)-1:
-                a[elem,elem-1] = p1 * mu(x =x[elem-1]) - p2 * g(x = x[elem-1])
-                a[elem, elem] = (1 + 2*p2*g(x = x[elem]))
+                a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
+                a[elem, elem] = 1 + 2*p2*Q(x[elem])
 
-                b[elem,elem-1] = -p1 * mu(x =x[elem-1]) + p2 * g(x = x[elem-1])
-                b[elem, elem] =  (1 - 2*p2*g(x = x[elem]))
+                b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
+                b[elem, elem] = 1 - 2*p2*Q(x[elem])
                             
             else:                 
-                a[elem,elem-1] = p1 * mu(x =x[elem-1]) - p2 * g(x = x[elem-1])
-                a[elem, elem] = (1 + 2*p2*g(x = x[elem]))
-                a[elem, elem+1] = -p1 * mu(x = x[elem+1]) - p2* g(x = x[elem+1])
+                a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
+                a[elem, elem] = 1 + 2*p2*Q(x[elem])
+                a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
 
-                b[elem,elem-1] = -p1 * mu(x =x[elem-1]) + p2 * g(x = x[elem-1])
-                b[elem, elem] = (1 - 2*p2*g(x = x[elem]))
-                b[elem, elem+1] = p1 * mu(x = x[elem+1]) + p2* g(x = x[elem+1])
+                b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
+                b[elem, elem] = 1 - 2*p2*Q(x[elem])
+                b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
 
-            # if elem == 0:
-            #     a[elem, elem] =  1 - c * ((-2)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
-            #     a[elem, elem+1] = (-1)*c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
-
-            #     b[elem, elem] = 1 + c * ((-2)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
-            #     b[elem, elem+1] = c * ( 2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
-
-            
-            # elif elem == len(x)-1:
-            #     a[elem,elem-1] = (-1) * c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-            #     a[elem, elem] = 1 - c*((-2)* self.diffusion(x = x[elem])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-
-            #     b[elem,elem-1] = c * ( 2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-            #     b[elem, elem] = 1 + c*((-2)* self.diffusion(x = x[elem])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-                            
-            # else:                 
-            #     a[elem,elem-1] = (-1) * c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-            #     a[elem, elem] = 1 - c * ((-4)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) - self.drift(x = x[elem-1]))/2)
-            #     a[elem, elem+1] = (-1)*c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
-
-            #     b[elem,elem-1] = c * (2* self.diffusion(x = x[elem-1])/self.dx - (self.drift(x = x[elem]) + self.drift(x = x[elem-1]))/2)
-            #     b[elem, elem] = 1 + c * ((-4)* self.diffusion(x = x[elem])/self.dx + (self.drift(x = x[elem+1]) - self.drift(x = x[elem-1]))/2)
-            #     b[elem, elem+1] = c * (2* self.diffusion(x = x[elem+1])/self.dx + (self.drift(x = x[elem+1]) + self.drift(x = x[elem]))/2)
         # Inverse of the Matrix 
         a_b = np.matmul(np.linalg.inv(a),b)
         
