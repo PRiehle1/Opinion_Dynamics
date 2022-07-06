@@ -2,7 +2,7 @@
 from tqdm import tqdm
 import time
 import numpy as np
-import model
+from model import OpinionFormation
 from scipy.optimize import minimize, dual_annealing
 import multiprocessing as mp
 from optimparallel import minimize_parallel
@@ -20,7 +20,6 @@ class Estimation():
         
 
     def logL(self, guess:tuple) -> np.array:
-        
         """
         The logL function takes a guess for the parameters and returns the log likelihood of that guess.
         The function takes as input:
@@ -49,13 +48,13 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = model.OpinionFormation(N = 175, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T = 30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = model.OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
@@ -86,12 +85,12 @@ class Estimation():
         else:   
             start = time.time()
 
-            for elem in range(len(time_series)-1):
+            for elem in tqdm(range(len(time_series)-1)):
                 # Solve the Fokker Plank Equation: 
                 pdf = mod.CrankNicolson(x_0 = time_series[elem])
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2):
+                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1]+0.01,2 ):
                         logf[elem] = np.log((np.abs(pdf[x])))
             if np.all(logf == 0):
                 print("Not all likelihoods are stored")
@@ -209,7 +208,7 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, None), (-2, 2), (0.01, None)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
         elif self.model_type == 1: 
             # endogenous N 
             res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
