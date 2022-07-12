@@ -3,6 +3,7 @@ from tqdm import tqdm
 import time
 import numpy as np
 from model import OpinionFormation
+import matplotlib.pyplot as plt
 from scipy.optimize import minimize, dual_annealing, basinhopping
 
 import multiprocessing as mp
@@ -53,27 +54,28 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 50, T =100 , nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 50, T =60, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
             mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 300, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
 
         if self.multiprocess == True:
+            start = time.time()
             # Time Series to List
             time_series_list = list(time_series)
 
             # Multiprocessing 
-            pool = mp.Pool(8)
+            pool = mp.Pool(10)
 
             # Calculate the PDF for all values in the Time Series
             if self.model_type == 0:
-                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(time_series_list))))
+                pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
             elif self.model_type == 1: 
                 pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(time_series_list))))
             elif self.model_type == 2: 
@@ -89,10 +91,11 @@ class Estimation():
             
             pool.close()  
             pdf = np.array(pdf)
+            plt.plot(pdf)
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1]+0.01,2 ) :
+                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],3):
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
            
             if np.all(logf == 0):
@@ -101,6 +104,9 @@ class Estimation():
             else:
                 logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL)) 
+            end = time.time()
+            dum = end - start
+            print("Time past for one caclulaion of the likelihood:  " + str(dum)) 
         
         else:   
             start = time.time()
@@ -118,7 +124,7 @@ class Estimation():
            
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if mod.x[x] == np.around(time_series[elem+1],2) or mod.x[x] == np.around(time_series[elem+1]+0.01,2 ):
+                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],3):
                         logf[elem] = np.log((np.abs(pdf[x])))
             if np.all(logf == 0):
                 print("Not all likelihoods are stored")
@@ -236,11 +242,11 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
         elif self.model_type == 1: 
             print("Iam here")
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
         
         elif self.model_type == 2: 
             res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None), (None, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})

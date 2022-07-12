@@ -93,13 +93,16 @@ class Simulation(model.OpinionFormation):
                 time_series.append(next_value)
             else:
                 # Calculate the PDF 
-                pdf = self.CrankNicolson(x_0 = time_series[i-1])
+                pdf = self.CrankNicolson(x_0 = time_series[i])
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
                 cdf = cdf/cdf[-1]
                 # Take the inverse of the CDF
                 cdf_inv = np.around(cdf.T, decimals = 10)
+                # plt.plot(cdf_inv)
+                # plt.show()
+
                 # Draw a random uniform number
                 u = np.around(np.random.uniform(), decimals= 10)
                 # Search for the closest value in the CDF 

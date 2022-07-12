@@ -14,14 +14,17 @@ import pandas as pd
 #######################################################################################################################################
 
 
-test = OpinionFormation(N = 21, T = 30, nu = 0.15, alpha0= 0. , alpha1= 0.99, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= 1)    #
+test = OpinionFormation(N = 50, T = 60, nu = 3, alpha0= 0, alpha1= 1.2, alpha2 = None,alpha3 = None, y = None, deltax= 0.0025, deltat= 1/100, model_type= 0)    #
 
-test_1 =OpinionFormation(N = 21, T = 100, nu = 0.15, alpha0= 0 , alpha1= 0.99, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= 1)  
+test_1 =OpinionFormation(N = 50, T = 60, nu = 1, alpha0= 0, alpha1= 0.8, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= 0)  
 #test_1 = model.OpinionFormation(N = 175, T = 4, nu = 0.8 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, model_type =0)
 #test_2 = model.OpinionFormation(N = 175, T = 4, nu = 0.8 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/16, model_type =0)
 
-prob,prob_end = test.CrankNicolson(x_0 = -0.5, y = 1, check_stability = False, calc_dens = False, converged =  False, fast_comp = False)
-prob_end_1 = test_1.CrankNicolson(x_0 = -0.5, y= 1, check_stability = False, calc_dens = False, converged =  False, fast_comp = True)
+area,prob,prob_end = test.CrankNicolson(x_0 = -0.9, y = 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+area_1,prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = 0, y= 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+plt.plot(area)
+plt.plot(area_1)
+plt.show()
 #prob_end_2 = test_2.CrankNicolson(x_0 = 0,check_stability = False, calc_dens = False, converged =  False, fast_comp = True)
 
 

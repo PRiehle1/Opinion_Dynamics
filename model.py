@@ -1,9 +1,11 @@
 from operator import mod
+from unicodedata import decimal
 import numpy as np 
 from math import *
 from errors import * 
 from scipy.integrate import simps
 from tqdm import tqdm
+import matplotlib.pyplot as plt 
 
 class OpinionFormation():
     
@@ -38,7 +40,7 @@ class OpinionFormation():
         self.dt     = deltat 
         
         # Model Parameter to be generated
-        self.x      = np.around(np.arange(-1,1,self.dx, dtype= 'd'), decimals=3 )
+        self.x      = np.arange(-1,1+self.dx,self.dx, dtype= 'd').T
         self.t      = np.arange(0,T,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
@@ -104,9 +106,9 @@ class OpinionFormation():
             float: The drift value
         """
         if self.model_type == 0:
-            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
+            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x)*(np.tanh(self.alpha0 + self.alpha1 * x)-x))
         elif self.model_type == 1: 
-            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x) - x * np.cosh(self.alpha0 + self.alpha1*x))
+            return 
         elif self.model_type == 2: 
             return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 *y))
         elif self.model_type == 3: 
@@ -124,7 +126,7 @@ class OpinionFormation():
         
         """
         if self.model_type == 0:
-            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
+            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x)*(1 - x* np.tanh(self.alpha0 + self.alpha1 * x)))*(1/self.N)
         elif self.model_type == 1: 
             return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
         elif self.model_type == 2: 
@@ -146,7 +148,7 @@ class OpinionFormation():
         Returns:
             float: The value of the normal pdf at a given point
         """
-        return 1/np.sqrt(variance*2*np.pi) * np.exp((-1/2)*((x-mean)/np.sqrt(variance))**2)
+        return  np.exp((-1)*(((x-mean)**2)/(2*variance)))/(np.sqrt(variance)*np.sqrt(2*np.pi))
     
     def normalPDF_2(self, epsilon: float) -> float:
         """
@@ -196,7 +198,7 @@ class OpinionFormation():
             
         drift = self.drift(x, y, x_l) 
             
-        diffusion =  1/self.N * self.diffusion(x, y, x_l) 
+        diffusion = self.diffusion(x, y, x_l) 
             
         normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
         
@@ -218,8 +220,9 @@ class OpinionFormation():
             if truncated == True:
                 dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
             else: 
-                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + self.drift(x = self.x[i], y = y, x_l = x_l) * self.dt, variance= self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt ) 
-        return dummy/np.sum(dummy)
+                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + (self.drift(x = self.x[i], y = y, x_l = x_l) * self.dt), variance= self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt)
+        
+        return dummy
     
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
@@ -241,7 +244,6 @@ class OpinionFormation():
         dx = self.dx
         dt = self.dt 
         x = self.x
-        t = self.t 
         N = self.N 
         prob = self.prob
 
@@ -252,7 +254,7 @@ class OpinionFormation():
         
         # Parameter
         p1 = self.dt/(2*self.dx)
-        p2 = self.dt/(4*self.N*(self.dx**2))
+        p2 = self.dt/(4*(self.dx**2))
         
         def Q(x):
             return self.diffusion(x, y, x_l)
@@ -289,7 +291,7 @@ class OpinionFormation():
         a_b = np.matmul(np.linalg.inv(a),b)
         
         # Initial Distribution 
-        prob[:,0] = self.initialDistribution(x_0, truncated= True)
+        prob[:,0] = np.abs(self.initialDistribution(x_0, truncated= True))
 
         if fast_comp == True: 
             
@@ -312,11 +314,11 @@ class OpinionFormation():
             if calc_dens == True:
                 area = np.zeros(len(self.t))
                 for t in range(1,len(self.t)): 
-                    area[t] = simps(self.prob[:,t-1], x = self.x)
-                    if  area[t] <= area[1] - 0.05 or area[t-1] >= area[1] + 0.05:           
+                    area[t-1] = simps(self.prob[:,t-1], x = self.x)
+                    if  area[t-1] <= area[0] - 0.05 or area[t-1] >= area[0] + 0.05:           
                         raise WrongDensityValueError(area[t], t)
                     else: 
-                        self.prob[:,t] =  np.matmul(a_b,self.prob[:,t-1])
+                        self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 
@@ -326,9 +328,6 @@ class OpinionFormation():
                 #import matplotlib.pyplot as plt 
                 for t in range(1,len(self.t)):
                     self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
-                    # plt.plot(prob[:,t])
-                    # plt.show()
-
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
                 else: 
