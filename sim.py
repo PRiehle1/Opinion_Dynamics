@@ -1,11 +1,11 @@
 ''' Class for Simulating the social model'''
 # Import Packages
-import model
+from model import OpinionFormation
 import numpy as np 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-class Simulation(model.OpinionFormation):
+class Simulation(OpinionFormation):
 
     def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float , alpha3:float, y:float, model_type:int, deltax: float, deltat: float, seed:int) -> None: 
         """

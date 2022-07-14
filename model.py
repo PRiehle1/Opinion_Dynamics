@@ -40,7 +40,7 @@ class OpinionFormation():
         self.dt     = deltat 
         
         # Model Parameter to be generated
-        self.x      = np.arange(-1,1+self.dx,self.dx, dtype= 'd').T
+        self.x      = np.arange(-1,1+deltax,self.dx)
         self.t      = np.arange(0,T,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
@@ -106,7 +106,7 @@ class OpinionFormation():
             float: The drift value
         """
         if self.model_type == 0:
-            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x)*(np.tanh(self.alpha0 + self.alpha1 * x)-x))
+            return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x) - (x * np.cosh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 1: 
             return 
         elif self.model_type == 2: 
@@ -126,7 +126,7 @@ class OpinionFormation():
         
         """
         if self.model_type == 0:
-            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x)*(1 - x* np.tanh(self.alpha0 + self.alpha1 * x)))*(1/self.N)
+            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
         elif self.model_type == 1: 
             return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
         elif self.model_type == 2: 
@@ -137,92 +137,57 @@ class OpinionFormation():
 
     
     # Define the functions for the initial distribution 
-    def normalPDF_1(self, x:float,  mean: float, variance: float) -> float:
-        """
-        The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
-        It returns the value of probability density function for normal distribution at point x.
-        Args:
-            x (float): Represent the value of x_
-            mean (float): Mean of the Distribution
-            variance (float): Variance of the Distribution
-        Returns:
-            float: The value of the normal pdf at a given point
-        """
-        return  np.exp((-1)*(((x-mean)**2)/(2*variance)))/(np.sqrt(variance)*np.sqrt(2*np.pi))
-    
-    def normalPDF_2(self, epsilon: float) -> float:
-        """
-        The normalPDF function takes in a float x, the mean of a distribution μ and the variance σ. 
-        It returns the value of probability density function for normal distribution at point x.
-        Args:
-            x (float): Represent the value of x_
-            mean (float): Mean of the Distribution
-            variance (float): Variance of the Distribution
-        Returns:
-            float: The value of the normal pdf at a given point
-        """
-        return 1/np.sqrt(2*np.pi) * np.exp((-1/2)*epsilon**2)
 
     def normalDistributionCDF(self, x: float) -> float: 
         """The normalDistributionCDF function takes a float x as input and returns the cumulative distribution function \
-            of the normal distribution with mean μ=0 and standard deviation σ=1.
+            of the normal distribution
         Args:
-            x (float): Represent the value of x for which we want to calculate the probability
+            x (float): Represent the value of x for which we want to calculate the density minus the mean and divided by the standard deviation times sqrt of two
         Returns:
-            float: The probability that a random variable x will be less than or equal to x
+            float: The value of the cdf at x  
         """
-        return (1.0 + erf(x / sqrt(2.0))) / 2.0
+        return (1.0 + erf(x)) / 2.0
     
-    def truncatednormalDistributionPDF(self, x: float, x_0:float, bound_right: float, bound_left: float, y = 0, x_l = 0) -> float: 
-        """
-        The truncatednormalDistributionPDF function takes in the following parameters: 
-        x, x_0, bound_right, and bound_left. It returns a float that represents the value of 
-        the truncated normal distribution at point x. The function is defined by:
+    def truncatednormalDistributionCDF(self, eps:float, alpha: float, beta:float) -> float: 
         
-            f(x) = ( 1 / (N * sqrt(2*pi)) ) * exp(-((x-(x0 + drift*dt))^2)/(2*diffusion^2 dt) ) / [ F(bound_right)-F(bound-left)]
-            
-        where N is the number of steps taken in each simulation path; drift is equal to 1/N times 
-        the change in price over time; diffusion is equal to volatility divided by square root of time;  
-        
-            F represents the cumulative density function for a standard normal distribution with mean 0 and variance 1.  
-        Args:
-            x (float): Pass the current value of x to the function
-            x_0 (float): Define the mean of the normal distribution
-            bound_right (float): Define the upper bound of the truncated normal distribution
-            bound_left (float): Set the lower bound of the truncated normal distribution
-        Returns:
-            float: The truncated normal distribution for a given x and its parameters
-        """
-        
-        # Initialize the Variables
-            
-        drift = self.drift(x, y, x_l) 
-            
-        diffusion = self.diffusion(x, y, x_l) 
-            
-        normalDist = self.normalPDF_2((x-(x_0 + drift * self.dt))/np.sqrt(diffusion* self.dt)) 
-        
-        x_1 = (bound_right-(x_0 + drift * self.dt))/np.sqrt(diffusion*self.dt)    
-        x_2 = (bound_left-(x_0 + drift * self.dt))/np.sqrt(diffusion*self.dt)
-        
-        trunormalDist = (1/np.sqrt(diffusion*self.dt)) * normalDist/(self.normalDistributionCDF(x = x_1) - self.normalDistributionCDF(x = x_2))
-        
-        return trunormalDist
+        return ((self.normalDistributionCDF(eps/np.sqrt(2)) - self.normalDistributionCDF(alpha/np.sqrt(2)))/(self.normalDistributionCDF(beta/np.sqrt(2))-self.normalDistributionCDF(alpha/np.sqrt(2))))
     
-    def initialDistribution(self, x_initial:float, truncated: bool, y = 0, x_l = 0) -> np.array:
+    def normalDistributionPDF(self,mean: float, sd:float, x:float) -> float: 
+        
+        return (1/(sd*np.sqrt(2*np.pi))) * np.exp((-1/2)* ((x-mean)/sd)**2)  
+        
+    def initialDistribution(self, x_initial:float, y = 0, x_l = 0) -> np.array:
         """ Calculates the initial distribution of the probability
         Returns:
             array: The values of the initial Probability at t=0 for every x
         """
-        dummy = np.zeros(len(self.prob))
-
-        for i in range(0,len(dummy)):
-            if truncated == True:
-                dummy[i] = self.truncatednormalDistributionPDF(x = self.x[i] ,x_0 = x_initial, bound_right = 1, bound_left = (-1))   
-            else: 
-                dummy[i] = self.normalPDF_1(x = self.x[i],mean = x_initial + (self.drift(x = self.x[i], y = y, x_l = x_l) * self.dt), variance= self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt)
+        cdf = np.zeros(len(self.prob))
+        cdf_1 = np.zeros(len(self.prob))
+        pdf = np.zeros(len(self.prob))
+        pdf_1 = np.zeros(len(self.prob))
         
-        return dummy
+        for i in range(0,len(cdf)):
+            mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
+            cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
+            
+            eps = (self.x[i] - mean)/sd
+            alpha = (-1 - mean)/sd 
+            beta = (1-mean)/sd
+             
+            cdf_1[i] = self.truncatednormalDistributionCDF(eps, alpha, beta)
+
+        for i in range(0,len(pdf)):
+            mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
+            pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i])
+            
+        for i  in range(0,len(pdf)-1):
+            pdf_1[i] = (cdf[i+1]-cdf[i])/self.dx
+            
+        return pdf_1
+        
+        
     
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
@@ -243,15 +208,12 @@ class OpinionFormation():
         # Fixed Parametes and Vecotors 
         dx = self.dx
         dt = self.dt 
-        x = self.x
-        N = self.N 
-        prob = self.prob
+        x = self.x 
 
 
         # Initialize the Matrix for the solver 
         a = np.zeros([len(x), len(x)]) # LHS Matrix
         b = np.zeros([len(x), len(x)]) # RHS Matrix
-        
         # Parameter
         p1 = self.dt/(2*self.dx)
         p2 = self.dt/(4*(self.dx**2))
@@ -285,18 +247,20 @@ class OpinionFormation():
 
                 b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
                 b[elem, elem] = 1 - 2*p2*Q(x[elem])
-                b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
+                b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])        
+
 
         # Inverse of the Matrix 
         a_b = np.matmul(np.linalg.inv(a),b)
         
         # Initial Distribution 
-        prob[:,0] = np.abs(self.initialDistribution(x_0, truncated= True))
+        self.prob[:,0] = np.abs(self.initialDistribution(x_0))
+        #plt.plot(self.prob[:,0])
 
         if fast_comp == True: 
             
-           # x = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
+                
                 self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))  
             
             return self.prob[:,-1]
@@ -315,17 +279,18 @@ class OpinionFormation():
                 area = np.zeros(len(self.t))
                 for t in range(1,len(self.t)): 
                     area[t-1] = simps(self.prob[:,t-1], x = self.x)
-                    if  area[t-1] <= area[0] - 0.05 or area[t-1] >= area[0] + 0.05:           
-                        raise WrongDensityValueError(area[t], t)
+                    if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:           
+                        raise WrongDensityValueError(area[t-1], t-1)
                     else: 
                         self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
+                    if t in (np.arange(0,len(self.t),1)):
+                        plt.plot(self.prob[:,t])
+                plt.show()
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 
                     return area, self.prob[:,-1]
             else: 
-                x = np.zeros(len(self.t))
-                #import matplotlib.pyplot as plt 
                 for t in range(1,len(self.t)):
                     self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
                 if converged == False:         

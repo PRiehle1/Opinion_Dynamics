@@ -141,19 +141,23 @@ if __name__ == '__main__':
 
     # # First Set of Data 
 
-    # Simulated data
-    sim_1 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 3)  
+    #Simulated data
+    sim_1 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 3)  
     test_data_1 = sim_1.simulation(0, sim_length = 200)
+    plt.plot(test_data_1)
+    plt.show()
 
-    # Set up the Monte Carlo Estimation
-    mC = MonteCarlo(numSim= 200, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
-    mC.run(init_guess=(3,0,0.8))
+    # # Set up the Monte Carlo Estimation
+    # mC = MonteCarlo(numSim= 200, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
+    # mC.run(init_guess=(3,0,0.8))
 
     # #Second Set of Data 
 
-    # # Simulated data
-    # sim_2 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
-    # test_data_2 = sim_2.simulation(0, sim_length = 200)
+    # Simulated data
+    sim_2 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
+    test_data_2 = sim_2.simulation(0, sim_length = 200)
+    plt.plot(test_data_2)
+    plt.show()
 
     # # Set up the Monte Carlo Estimation
     # mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= False, model_type= 0), multiprocess= True, real_data = False)
@@ -162,21 +166,23 @@ if __name__ == '__main__':
     # Third Set of Data 
 
     # Simulated data
-    sim_3= sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
+    sim_3= sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
     test_data_3 = sim_3.simulation(0, sim_length = 200)
     plt.plot(test_data_3)
     plt.show()
 
 
-    # Set up the Monte Carlo Estimation
-    mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    mC.run(init_guess= (3,0,1.2))
+    # # Set up the Monte Carlo Estimation
+    # mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
+    # mC.run(init_guess= (3,0,1.2))
 
-    # # Fourth Set of Data 
+    # Fourth Set of Data 
 
-    # # Simulated data
-    # sim_4 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
-    # test_data_4 = sim_4.simulation(0, sim_length = 200)
+    # Simulated data
+    sim_4 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
+    test_data_4 = sim_4.simulation(0, sim_length = 200)
+    plt.plot(test_data_4)
+    plt.show()
 
 
     # # Set up the Monte Carlo Estimation
