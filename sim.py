@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 class Simulation(OpinionFormation):
 
-    def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float , alpha3:float, y:float, model_type:int, deltax: float, deltat: float, seed:int) -> None: 
+    def __init__(self,N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float , alpha3:float, model_type:int, deltax: float, deltat: float, seed:int, y=0) -> None: 
         """
         Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
 
@@ -28,7 +28,8 @@ class Simulation(OpinionFormation):
         Return: 
             A reference to the newly created object
         """
-        super().__init__(N, T, nu, alpha0, alpha1, alpha2, alpha3, y, deltax, deltat, model_type) 
+        super().__init__(N, T, nu, alpha0, alpha1, alpha2, alpha3, deltax, deltat, model_type) 
+        self.y = y
         self.seed = seed
         
     def eulermm(self, ic: float)    -> np.array: 
@@ -73,7 +74,12 @@ class Simulation(OpinionFormation):
 
             if i == 0:
                 # Calculate the PDF 
-                pdf = self.CrankNicolson(x_0 = initial_value)
+                if self.model_type == 0:    
+                    pdf = self.CrankNicolson(x_0 = initial_value)
+                elif self.model_type == 1: 
+                    pdf = self.CrankNicolson(x_0 = initial_value)
+                elif self.model_type == 2: 
+                    pdf = self.CrankNicolson(x_0 = initial_value, y = self.y[i])
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
@@ -93,7 +99,13 @@ class Simulation(OpinionFormation):
                 time_series.append(next_value)
             else:
                 # Calculate the PDF 
-                pdf = self.CrankNicolson(x_0 = time_series[i])
+                if self.model_type == 0:    
+                    pdf = self.CrankNicolson(x_0 = time_series[i])
+                elif self.model_type == 1: 
+                    pdf = self.CrankNicolson(x_0 = time_series[i])
+                elif self.model_type == 2: 
+                    pdf = self.CrankNicolson(x_0 = time_series[i], y = self.y[i])
+
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF

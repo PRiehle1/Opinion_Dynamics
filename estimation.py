@@ -50,11 +50,11 @@ class Estimation():
         elif self.model_type == 3: 
             nu, alpha0, alpha1, N, alpha2, alpha3= guess
 
-        print("The Minimization_Guess is: " + str(guess))
+        #print("The Minimization_Guess is: " + str(guess))
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 50, T =60, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T =30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
@@ -71,13 +71,38 @@ class Estimation():
             time_series_list = list(time_series)
 
             # Multiprocessing 
-            pool = mp.Pool(10)
-
+            pool = mp.Pool(12)
+            
             # Calculate the PDF for all values in the Time Series
             if self.model_type == 0:
-                pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
+                
+                for _ in range(100):
+                    pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
+                    # Check if the area under the PDF equals one if not adapt the grid size in time
+                    pdf = np.array(pdf)
+                    dummy = mod.dt
+                    for elem in range(len(pdf)-1):
+                        area = np.sum(pdf[elem,:]*mod.dx)
+                        if area > 1 + 0.02 or area < 1- 0.02:
+                            if mod.dt <= 1/400:
+                                mod.dt = mod.dt/5
+                            break
+                    if mod.dt == dummy:
+                        break
+    
             elif self.model_type == 1: 
-                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(time_series_list))))
+                for _ in range(100):
+                    pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
+                    # Check if the area under the PDF equals one if not adapt the grid size in time
+                    pdf = np.array(pdf)
+                    dummy = mod.dt
+                    for elem in range(len(pdf)-1):
+                        area = np.sum(pdf[elem,:]*mod.dx)
+                        if area > 1 + 0.02 or area < 1- 0.02:
+                            mod.dt = mod.dt/10
+                            break
+                    if mod.dt == dummy:
+                        break
             elif self.model_type == 2: 
                 # y to List
                 y_list = list(y)
@@ -90,20 +115,19 @@ class Estimation():
                 pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list, y_list, x_l_list)))
             
             pool.close()  
-            pdf = np.array(pdf)
-            plt.plot(pdf)
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],3):
+                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],2) or np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1]+0.01,2):
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
-           
+                if logf[elem] == 0: 
+                    "Print Errrrrrrrrrrrrrrrrrorrrrrrrrrrrrrrrrrrr"
             if np.all(logf == 0):
                 print("Not all likelihoods are stored")
                 pass
             else:
                 logL = np.sum(logf)
-            print("The Log Likelihood is: " + str(logL)) 
+            print("The Log Likelihood is: " + str(logL) + "  and  " + "The Minimization_Guess was: " + str(guess)) 
             end = time.time()
             dum = end - start
             print("Time past for one caclulaion of the likelihood:  " + str(dum)) 
@@ -111,7 +135,7 @@ class Estimation():
         else:   
             start = time.time()
 
-            for elem in tqdm(range(len(time_series)-1)):
+            for elem in range(len(time_series)-1):
                 # Solve the Fokker Plank Equation: 
                 if self.model_type == 0:
                     pdf = mod.CrankNicolson(x_0 = time_series[elem])
@@ -126,16 +150,18 @@ class Estimation():
                 for x in range(len(mod.x)):
                     if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],3):
                         logf[elem] = np.log((np.abs(pdf[x])))
+
             if np.all(logf == 0):
                 print("Not all likelihoods are stored")
                 pass
             else:
                 logL = np.sum(logf)
             
-            print("The Log Likelihood is: " + str(logL)) 
+            print("The Log Likelihood is: " + str(logL) + "and" + "The Minimization_Guess was: " + str(guess)) 
             end = time.time()
             dum = end - start
             print("Time past for one caclulaion of the likelihood:  " + str(dum)) 
+
         return logL
     
     def neglogL(self, guess:tuple) -> np.array:
@@ -242,9 +268,8 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 5), (-0.2, 0.2), (0.6, 2)],  callback=None, options={'maxiter': 100, 'iprint': -1})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.01, 10), (-0.5, 0.5), (0.1, 3)],  callback=None, options={ 'adaptive': True})
         elif self.model_type == 1: 
-            print("Iam here")
             # endogenous N 
             res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
         

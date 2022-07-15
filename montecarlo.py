@@ -22,7 +22,11 @@ class MonteCarlo():
         #### Solver BFGS 
         init_guess = list(init_guess)
         for elem in range(len(init_guess)):
-            init_guess[elem] = init_guess[elem] + np.random.normal(0,0.05)
+            if elem == 1:
+                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.001),4)
+            else:
+                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.005),4)
+
         res = self.estimation.solver_BFGS(init_guess)
 
         #res = self.estimation.solver_bhhh(init_guess, tolerance_level= 0.0001, max_iter= 40)
@@ -119,10 +123,10 @@ class MonteCarlo():
                 self.estim(tuple(init_guess))
         
         else: 
-            
-            for i in range(int(self.numSim/8)):
+            ## Wenn Anzahl der Estimations nicht durch 4 dividierbar sind FEHLERMELDUNG AUSGEBEN und um Änderung bitten/ das Programm das ändern lassen 
+            for i in range(int(self.numSim/6)):
                 jobs = []
-                for d in range(8):
+                for d in range(4):
                     p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
                     jobs.append(p)
                     p.start()#
@@ -141,64 +145,62 @@ if __name__ == '__main__':
 
     # # First Set of Data 
 
-    #Simulated data
-    sim_1 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 3)  
-    test_data_1 = sim_1.simulation(0, sim_length = 200)
-    plt.plot(test_data_1)
-    plt.show()
+    # #Simulated data
+    # sim_1 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/300, model_type =0, seed = 3)  
+    # test_data_1 = sim_1.simulation(0, sim_length = 200)
+    # #plt.plot(test_data_1)
+    # #plt.show()
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 200, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
-    # mC.run(init_guess=(3,0,0.8))
+    # mC_1 = MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
+    # mC_1.run(init_guess=(3,0,0.8))
 
-    # #Second Set of Data 
+    # # #Second Set of Data 
 
-    # Simulated data
-    sim_2 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 0.01, model_type =0, seed = 150)  
-    test_data_2 = sim_2.simulation(0, sim_length = 200)
-    plt.plot(test_data_2)
-    plt.show()
-
-    # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= False, model_type= 0), multiprocess= True, real_data = False)
-    # mC.run(init_guess= (3,0.2,0.8))
-
-    # Third Set of Data 
-
-    # Simulated data
-    sim_3= sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
-    test_data_3 = sim_3.simulation(0, sim_length = 200)
-    plt.plot(test_data_3)
-    plt.show()
-
+    # # Simulated data
+    # sim_2 = sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/300, model_type =0, seed = 150)  
+    # test_data_2 = sim_2.simulation(0, sim_length = 200)
+    # #plt.plot(test_data_2)
+    # #plt.show()
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    # mC.run(init_guess= (3,0,1.2))
+    # mC_2 = MonteCarlo(numSim= 5 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
+    # mC_2.run(init_guess= (3,0.2,0.8))
 
-    # Fourth Set of Data 
+    # #Third Set of Data 
 
-    # Simulated data
-    sim_4 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
-    test_data_4 = sim_4.simulation(0, sim_length = 200)
-    plt.plot(test_data_4)
-    plt.show()
+    # # Simulated data
+    # sim_3= sim.Simulation(N = 50, T = 30, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
+    # test_data_3 = sim_3.simulation(0, sim_length = 200)
+    # plt.plot(test_data_3)
+    # plt.show()
 
+    # # # # Set up the Monte Carlo Estimation
+    # mC_3 = MonteCarlo(numSim= 5 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
+    # mC_3.run(init_guess= (3,0,1.2))
+
+    # # # Fourth Set of Data 
+
+    # # Simulated data
+    # sim_4 = sim.Simulation(N = 50, T = 10, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/300, model_type =0, seed = 150)  
+    # test_data_4 = sim_4.simulation(0, sim_length = 200)
+    # plt.plot(test_data_4)
+    # plt.show()
 
     # # Set up the Monte Carlo Estimation
-    # mC = MonteCarlo(numSim= 200 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_4, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    # mC.run(init_guess= (3,0.2,1.2))
+    # mC_4 = MonteCarlo(numSim= 5 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_4, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
+    # mC_4.run(init_guess= (3,0.2,1.2))
 
-    # #Real Data 
-    # from data_reader import data_reader
+    #Real Data 
+    from data_reader import data_reader
 
-    # data = data_reader(time_period= 175)
-    # zew = data.zew()/100
-    # ip = data.industrial_production()
+    data = data_reader(time_period= 175)
+    zew = data.zew()/100
+    ip = data.industrial_production()
 
-    # # # Model with exogenous N
-    # # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 0), multiprocess= False, real_data = True)
-    # # mC.run(init_guess= (0.8,0.01,1.2))
+    # Model with exogenous N
+    mC = MonteCarlo(numSim= 30 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 0), multiprocess= False, real_data = True)
+    mC.run(init_guess= (0.8,0.01,1.19))
 
     # # Model with endogenous N 
     # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 1), multiprocess= False, real_data = True)

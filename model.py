@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 class OpinionFormation():
     
     # Initialize the class
-    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, y: np.array, deltax: float, deltat: float, model_type: int) -> None:
+    def __init__(self, N: int, T:int, nu: float, alpha0: float, alpha1: float, alpha2:float, alpha3:float, deltax: float, deltat: float, model_type: int) -> None:
         """ Initialize the model class with listed input parameters. Furthermore generate empty ararys for the used variables
         Args:
             N (int): Number of Agents
@@ -20,7 +20,6 @@ class OpinionFormation():
             alpha1 (float): Adaptation Parameter
             alpha2 (float): Assessment of the business cycle
             alpha3 (float): Momentum Effect
-            y (np.array): Underlying Time Series
             deltax (float): Discretization in space
             deltat (float): Discretization in time
             model_type(int): Type of the Model (0: a2,a3 = 0 & N = 175; 1: a2,a3 = 0; 2: a3 = 0, 3: all parameters endogenous )
@@ -34,7 +33,7 @@ class OpinionFormation():
         self.alpha1 = alpha1 
         self.alpha2 = alpha2
         self.alpha3 = alpha3 
-        self.y      = y
+
         self.model_type = model_type
         self.dx     = deltax
         self.dt     = deltat 
@@ -108,9 +107,9 @@ class OpinionFormation():
         if self.model_type == 0:
             return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x) - (x * np.cosh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 1: 
-            return 
+            return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x) - (x * np.cosh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 2: 
-            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 *y))
+            return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2 * y) - (x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 * y)))
         elif self.model_type == 3: 
             return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)))   
         
@@ -128,9 +127,9 @@ class OpinionFormation():
         if self.model_type == 0:
             return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
         elif self.model_type == 1: 
-            return  2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x) - x * np.sinh(self.alpha0 + self.alpha1*x))
+            return   (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
         elif self.model_type == 2: 
-            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2 *y))
+            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y))) *(1/self.N)
         elif self.model_type == 3: 
             return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l))) 
         
@@ -162,7 +161,6 @@ class OpinionFormation():
             array: The values of the initial Probability at t=0 for every x
         """
         cdf = np.zeros(len(self.prob))
-        cdf_1 = np.zeros(len(self.prob))
         pdf = np.zeros(len(self.prob))
         pdf_1 = np.zeros(len(self.prob))
         
@@ -171,11 +169,6 @@ class OpinionFormation():
             sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
             cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
             
-            eps = (self.x[i] - mean)/sd
-            alpha = (-1 - mean)/sd 
-            beta = (1-mean)/sd
-             
-            cdf_1[i] = self.truncatednormalDistributionCDF(eps, alpha, beta)
 
         for i in range(0,len(pdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
@@ -254,7 +247,15 @@ class OpinionFormation():
         a_b = np.matmul(np.linalg.inv(a),b)
         
         # Initial Distribution 
-        self.prob[:,0] = np.abs(self.initialDistribution(x_0))
+        if self.model_type == 0: 
+            self.prob[:,0] = np.abs(self.initialDistribution(x_0))
+            #self.prob[:,0] /= np.sum(self.prob[:,0] )
+        elif self.model_type == 1: 
+            self.prob[:,0] = np.abs(self.initialDistribution(x_0))
+        elif self.model_type == 2:
+            self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
+
+
         #plt.plot(self.prob[:,0])
 
         if fast_comp == True: 
@@ -262,7 +263,7 @@ class OpinionFormation():
             for t in range(1,len(self.t)):
                 
                 self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))  
-            
+                plt.plot(self.prob[:,-1])
             return self.prob[:,-1]
         else:
             
@@ -280,12 +281,10 @@ class OpinionFormation():
                 for t in range(1,len(self.t)): 
                     area[t-1] = simps(self.prob[:,t-1], x = self.x)
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:           
-                        raise WrongDensityValueError(area[t-1], t-1)
+                        self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
+                        #raise WrongDensityValueError(area[t-1], t-1)
                     else: 
                         self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
-                    if t in (np.arange(0,len(self.t),1)):
-                        plt.plot(self.prob[:,t])
-                plt.show()
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 

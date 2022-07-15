@@ -38,16 +38,19 @@ class data_reader():
         
         if hp_filter == True: 
             ip_cyle, ip_tred = hpfilter(ip,129600)
-            return ip_cyle
+            return ip_cyle/100
         else: 
-            return ip
+            return ip/100
         
         
         
         
         
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt 
 
-    reader = data_reader()
-    zew = reader.zew()
+    reader = data_reader(175)
+    #zew = reader.zew()
     ip = reader.industrial_production()
+    plt.plot(ip/100)
+    plt.show()
