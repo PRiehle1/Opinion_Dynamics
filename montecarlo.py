@@ -21,11 +21,11 @@ class MonteCarlo():
     def estim(self, init_guess) -> np.array:
         #### Solver BFGS 
         init_guess = list(init_guess)
-        for elem in range(len(init_guess)):
-            if elem == 1:
-                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.001),4)
-            else:
-                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.005),4)
+        # for elem in range(len(init_guess)):
+        #     if elem == 1:
+        #         init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.001),4)
+        #     else:
+        #         init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.005),4)
 
         res = self.estimation.solver_BFGS(init_guess)
 
@@ -200,7 +200,7 @@ if __name__ == '__main__':
 
     # Model with exogenous N
     mC = MonteCarlo(numSim= 30 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 0), multiprocess= False, real_data = True)
-    mC.run(init_guess= (0.8,0.01,1.19))
+    mC.run(init_guess= (5,0.01,1.19))
 
     # # Model with endogenous N 
     # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 1), multiprocess= False, real_data = True)

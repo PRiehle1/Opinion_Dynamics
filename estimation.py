@@ -2,12 +2,14 @@
 from tqdm import tqdm
 import time
 import numpy as np
+from errors import UncompleteLikelihoodError
 from model import OpinionFormation
-import matplotlib.pyplot as plt
-from scipy.optimize import minimize, dual_annealing, basinhopping
+from scipy.integrate import simps
+
+from scipy.optimize import minimize, dual_annealing, differential_evolution
 
 import multiprocessing as mp
-from optimparallel import minimize_parallel
+
 
 
 # Define the class 
@@ -54,7 +56,7 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T =30, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T =20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
@@ -71,23 +73,27 @@ class Estimation():
             time_series_list = list(time_series)
 
             # Multiprocessing 
-            pool = mp.Pool(12)
+            pool = mp.Pool(8)
             
             # Calculate the PDF for all values in the Time Series
             if self.model_type == 0:
                 
                 for _ in range(100):
                     pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
-                    # Check if the area under the PDF equals one if not adapt the grid size in time
+                    # Check if the area under the PDF equals one if not adapt the grid size in time and space 
                     pdf = np.array(pdf)
-                    dummy = mod.dt
+                    dummy_1 = mod.dt
+                    dummy_2 = mod.dx
                     for elem in range(len(pdf)-1):
-                        area = np.sum(pdf[elem,:]*mod.dx)
+                        area = simps(pdf[elem,:], x = mod.x)
                         if area > 1 + 0.02 or area < 1- 0.02:
-                            if mod.dt <= 1/400:
-                                mod.dt = mod.dt/5
+                            dt_new = dummy_1/5
+                            dx_new = dummy_2/2
+                            print("The grid size is expanded to dx = " + str(dx_new) +  "and dt = " + str(dt_new))
+                            mod = OpinionFormation(N = 175, T =20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= dx_new, deltat= dt_new, model_type= self.model_type)
+                            pdf = []
                             break
-                    if mod.dt == dummy:
+                    if mod.dt == dummy_1:
                         break
     
             elif self.model_type == 1: 
@@ -100,6 +106,7 @@ class Estimation():
                         area = np.sum(pdf[elem,:]*mod.dx)
                         if area > 1 + 0.02 or area < 1- 0.02:
                             mod.dt = mod.dt/10
+                            print("The grid size is expanded by factor 10")
                             break
                     if mod.dt == dummy:
                         break
@@ -120,11 +127,10 @@ class Estimation():
                 for x in range(len(mod.x)):
                     if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],2) or np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1]+0.01,2):
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
+                
                 if logf[elem] == 0: 
-                    "Print Errrrrrrrrrrrrrrrrrorrrrrrrrrrrrrrrrrrr"
-            if np.all(logf == 0):
-                print("Not all likelihoods are stored")
-                pass
+                    raise UncompleteLikelihoodError
+
             else:
                 logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL) + "  and  " + "The Minimization_Guess was: " + str(guess)) 
@@ -268,7 +274,7 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.01, 10), (-0.5, 0.5), (0.1, 3)],  callback=None, options={ 'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), (0.1, 3)],  callback=None)
         elif self.model_type == 1: 
             # endogenous N 
             res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})

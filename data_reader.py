@@ -2,6 +2,8 @@ import pandas as pd
 import wget
 from fredapi import Fred
 from statsmodels.tsa.filters.hp_filter import hpfilter
+import os.path
+
 
 class data_reader():
     
@@ -13,7 +15,8 @@ class data_reader():
         # Define the URL of the File
         URL = "https://ftp.zew.de/pub/zew-docs/div/konjunktur.xls"
         # 2. download the data behind the URL
-        response = wget.download(URL, "ZEW_Sentiment.xls")
+        if os.path.exists(r"ZEW_Sentiment.xls") == False:
+            response = wget.download(URL, "ZEW_Sentiment.xls")
         # Open the xls file and store the time series
         zew = pd.read_excel("ZEW_Sentiment.xls", sheet_name= "data", names = ["Date","ZEW Indicator of Economic Sentiment Germany, balances"])
         # Change to numpy array

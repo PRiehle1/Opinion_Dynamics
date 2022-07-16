@@ -216,31 +216,33 @@ class OpinionFormation():
         def K(x):
             return self.drift(x, y, x_l) 
 
-        # Fill the matrices
-        for elem in range(len(x)):
-            if elem == 0:
-                a[elem, elem] =   1 + 2*p2*Q(x[elem])
-                a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
 
-                b[elem, elem] = 1 - 2*p2*Q(x[elem])
-                b[elem, elem+1] = -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
+        # Fill the matrices
+
+        # for elem in range(len(x)):
+        #     if elem == 0:
+        #         a[elem, elem] =   1 + 2*p2*Q(x[elem])
+        #         a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
+
+        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
+        #         b[elem, elem+1] = -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
 
             
-            elif elem == len(x)-1:
-                a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
-                a[elem, elem] = 1 + 2*p2*Q(x[elem])
+        #     elif elem == len(x)-1:
+        #         a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
+        #         a[elem, elem] = 1 + 2*p2*Q(x[elem])
 
-                b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
-                b[elem, elem] = 1 - 2*p2*Q(x[elem])
+        #         b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
+        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
                             
-            else:                 
-                a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
-                a[elem, elem] = 1 + 2*p2*Q(x[elem])
-                a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
+        #     else:                 
+        #         a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
+        #         a[elem, elem] = 1 + 2*p2*Q(x[elem])
+        #         a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
 
-                b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
-                b[elem, elem] = 1 - 2*p2*Q(x[elem])
-                b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])        
+        #         b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
+        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
+        #         b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])        
 
 
         # Inverse of the Matrix 
@@ -256,15 +258,13 @@ class OpinionFormation():
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
 
 
-        #plt.plot(self.prob[:,0])
 
         if fast_comp == True: 
             
             for t in range(1,len(self.t)):
-                
                 self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))  
-                plt.plot(self.prob[:,-1])
-            return self.prob[:,-1]
+
+            return np.abs(self.prob[:,-1])
         else:
             
             # Check the Stability of the Matrix
@@ -281,12 +281,11 @@ class OpinionFormation():
                 for t in range(1,len(self.t)): 
                     area[t-1] = simps(self.prob[:,t-1], x = self.x)
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:           
-                        self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
-                        #raise WrongDensityValueError(area[t-1], t-1)
+                        raise WrongDensityValueError(area[t-1], t-1)
                     else: 
                         self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
                 if converged == False:         
-                    return area, self.prob, self.prob[:, -1]
+                    return area, self.prob, np.abs(self.prob[:, -1])
                 else: 
                     return area, self.prob[:,-1]
             else: 

@@ -22,3 +22,12 @@ class UnstableSolutionMethodError(Exception):
         
     def __str__(self) -> str: 
         return self.message
+
+class UncompleteLikelihoodError(Exception):
+    
+    def __init__(self, message = "The Likelihood has missing values") -> None:
+        self.message = message
+        super().__init__(self.message)
+        
+    def __str__(self) -> str: 
+        return self.message

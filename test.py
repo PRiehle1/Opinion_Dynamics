@@ -18,16 +18,16 @@ import pandas as pd
 # #######################################################################################################################################
 
 
-test = OpinionFormation(N = 175, T = 3, nu = 0.8, alpha0= 0.01, alpha1= 1.1901, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/300, model_type= 0)    #
-test_1 =OpinionFormation(N = 175, T = 3, nu = 0.08, alpha0= 0.01, alpha1= 1.19, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/300, model_type= 0) 
+test = OpinionFormation(N = 175, T = 30, nu = 0.8, alpha0= 0.01, alpha1= 1.2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
+test_1 =OpinionFormation(N = 175, T = 30, nu = 0.08, alpha0= 0.01, alpha1= 1.1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= 0) 
 
 
-area,prob,prob_end = test.CrankNicolson(x_0 = (0), y = 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+area,prob,prob_end = test.CrankNicolson(x_0 = (-0.5), y = 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
 plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
 plot_0.surface_plot()
 
-area_1,prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (0), y= 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
-# # plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+area_1,prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (-.5), y= 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+# # plot_1 = plot.Plotting3D(param = prob_1, x = test_1., t = test_1.t)
 # # plot_1.surface_plot()
 
 # # plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
