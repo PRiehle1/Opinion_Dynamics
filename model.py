@@ -1,10 +1,8 @@
-from operator import mod
-from unicodedata import decimal
 import numpy as np 
 from math import *
 from errors import * 
 from scipy.integrate import simps
-from tqdm import tqdm
+from scipy.linalg import solve_banded
 import matplotlib.pyplot as plt 
 
 class OpinionFormation():
@@ -56,45 +54,6 @@ class OpinionFormation():
         return area
     
     # Define the Model Functions
-
-    def influence_function(self, x:float, y = 0, x_l = 0) -> float:
-        """
-        Calculates the influence based on the point in space, the value of the makro time series and the laged point in space
-
-        Args:
-            x (float): Point in space 
-            y (float): Point in makro time series
-            x_l (float): laged point in space
-
-        Returns:
-            float: The value of the influence function
-        """
-        if self.model_type == 0:
-            return self.alpha0 + self.alpha1* x
-        elif self.model_type == 1: 
-            return self.alpha0 + self.alpha1* x
-        elif self.model_type == 2: 
-            return self.alpha0 + self.alpha1 * x + self.alpha2 * y
-        elif self.model_type == 3: 
-            return self.alpha0 + self.alpha1 * x + self.alpha2 * y + self.alpha3*(x - x_l)
-
-    def transition_rate_up(self, x: float) -> float:
-        """ Calculates the Transition Probability for the whole socio-configuration to move upward
-        Args:
-            x (float): Point in space
-        Returns:
-            float: Transition Probability for a movement upward
-        """
-        return self.nu * (1-x)  * np.exp(self.influence_function(x))
-    
-    def transition_rate_down(self, x: float) -> float:
-        """ Calculates the Transition Probability for the whole socio-configuration to move downward
-        Args:
-            x (float): Point in space
-        Returns:
-            float: Transition Probability for a movement downward
-        """
-        return self.nu * (1+x)  * np.exp(((-1)*self.influence_function(x)))
     
     def drift(self, x: float, y=0, x_l = 0 ) -> float:
         """
@@ -114,7 +73,6 @@ class OpinionFormation():
             return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)))   
         
 
-    
     def diffusion(self, x: float, y = 0, x_l = 0) -> float:
         
         """ The diffusion function takes a value x and returns the change in that value after one time step.
@@ -125,7 +83,7 @@ class OpinionFormation():
         
         """
         if self.model_type == 0:
-            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
+            return  (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 1: 
             return   (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
         elif self.model_type == 2: 
@@ -133,8 +91,6 @@ class OpinionFormation():
         elif self.model_type == 3: 
             return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l))) 
         
-
-    
     # Define the functions for the initial distribution 
 
     def normalDistributionCDF(self, x: float) -> float: 
@@ -169,7 +125,6 @@ class OpinionFormation():
             sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
             cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
             
-
         for i in range(0,len(pdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
             sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
@@ -180,8 +135,6 @@ class OpinionFormation():
             
         return pdf_1
         
-        
-    
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
         """
@@ -203,73 +156,96 @@ class OpinionFormation():
         dt = self.dt 
         x = self.x 
 
-
         # Initialize the Matrix for the solver 
-        a = np.zeros([len(x), len(x)]) # LHS Matrix
-        b = np.zeros([len(x), len(x)]) # RHS Matrix
-        # Parameter
-        p1 = self.dt/(2*self.dx)
-        p2 = self.dt/(4*(self.dx**2))
+        lhs = np.zeros([len(x), len(x)]) # LHS Matrix
+        rhs = np.zeros([len(x), len(x)]) # RHS Matrix
         
-        def Q(x):
-            return self.diffusion(x, y, x_l)
-        def K(x):
-            return self.drift(x, y, x_l) 
+        # Parameter
+
+        # For the first order derivative 
+        p_1 = self.dt/(4*self.dx)
+        # For the second order derivative
+        p_2 = self.dt/(2*(self.dx**2))
+        
+        def g(x):
+            return  (1/2) * self.diffusion(x)
+
+        def mu(x):
+            return  (-1) * self.drift(x)
 
 
         # Fill the matrices
 
-        # for elem in range(len(x)):
-        #     if elem == 0:
-        #         a[elem, elem] =   1 + 2*p2*Q(x[elem])
-        #         a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
+        for elem in range(len(self.x)):
+            if elem == 0:
 
-        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
-        #         b[elem, elem+1] = -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])
+                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
+                lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
+
+                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
+                rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
 
             
-        #     elif elem == len(x)-1:
-        #         a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
-        #         a[elem, elem] = 1 + 2*p2*Q(x[elem])
+            elif elem == len(self.x)-1:
+                lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
 
-        #         b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
-        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
+                rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
+                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
                             
-        #     else:                 
-        #         a[elem,elem-1] = -p1* K(x[elem-1]) - p2* Q(x[elem-1])
-        #         a[elem, elem] = 1 + 2*p2*Q(x[elem])
-        #         a[elem, elem+1] = p1 * K(x[elem+1]) - p2 * Q(x[elem+1])
+            else:                 
+                lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
+                lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
 
-        #         b[elem,elem-1] = p1* K(x[elem-1]) + p2* Q(x[elem-1])
-        #         b[elem, elem] = 1 - 2*p2*Q(x[elem])
-        #         b[elem, elem+1] =  -p1 * K(x[elem+1]) + p2 * Q(x[elem+1])        
-
-
-        # Inverse of the Matrix 
-        a_b = np.matmul(np.linalg.inv(a),b)
-        
+                rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
+                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
+                rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
+    
         # Initial Distribution 
         if self.model_type == 0: 
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
-            #self.prob[:,0] /= np.sum(self.prob[:,0] )
         elif self.model_type == 1: 
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
         elif self.model_type == 2:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
 
+        # Part for the tridiagonal Matrix 
+        lower =1
+        upper = 1
+        n = lhs.shape[1]
+        assert(np.all(lhs.shape ==(n,n)))
+    
+        ab = np.zeros((2*n-1, n))
+    
+        for i in range(n):
+            ab[i,(n-1)-i:] = np. diagonal(lhs,(n-1)-i)
+        
+        for i in range(n-1): 
+            ab[(2*n-2)-i,:i+1] = np.diagonal(lhs,i-(n-1))
 
+        mid_row_inx = int(ab.shape[0]/2)
+        upper_rows = [mid_row_inx - i for i in range(1, upper+1)]
+        upper_rows.reverse()
+        upper_rows.append(mid_row_inx)
+        lower_rows = [mid_row_inx + i for i in range(1, lower+1)]
+        keep_rows = upper_rows+lower_rows
+        ab = ab[keep_rows,:]
+
+        # The Loop
 
         if fast_comp == True: 
-            
             for t in range(1,len(self.t)):
-                self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))  
+                area = simps(self.prob[:,t-1]/np.max(self.prob[:,t-1]), x = self.x)
+                rhs_1 = rhs @ ((self.prob[:,t-1]/np.max(self.prob[:,t-1]))/area)
+                self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
 
-            return np.abs(self.prob[:,-1])
+            return self.prob[:,-1]
         else:
             
             # Check the Stability of the Matrix
             if check_stability == True:
-                eigenvalues,_ = np.linalg.eig(a_b)
+                eigenvalues,_ = np.linalg.eig(np.linalg.inv(lhs) @ rhs)
                 if np.abs(eigenvalues).max() > 1.00000000009:             
                     print(np.abs(eigenvalues).max())
                     raise UnstableSolutionMethodError
@@ -280,17 +256,22 @@ class OpinionFormation():
                 area = np.zeros(len(self.t))
                 for t in range(1,len(self.t)): 
                     area[t-1] = simps(self.prob[:,t-1], x = self.x)
-                    if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:           
+                    if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
                         raise WrongDensityValueError(area[t-1], t-1)
                     else: 
-                        self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
+                        area_cor = simps(self.prob[:,t-1], x = self.x)
+                        rhs_1 = rhs @ (self.prob[:,t-1]/area_cor)
+                        self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
                 if converged == False:         
                     return area, self.prob, np.abs(self.prob[:, -1])
                 else: 
                     return area, self.prob[:,-1]
             else: 
                 for t in range(1,len(self.t)):
-                    self.prob[:,t] =  np.matmul(a_b,np.abs(self.prob[:,t-1]))
+                    area = simps(self.prob[:,t-1], x = self.x)
+                    rhs_1 = rhs @ (self.prob[:,t-1]/area)
+                    self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
+
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
                 else: 
