@@ -56,13 +56,13 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T =20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, y = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, y = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
@@ -73,47 +73,64 @@ class Estimation():
             time_series_list = list(time_series)
 
             # Multiprocessing 
-            pool = mp.Pool(8)
+            pool = mp.Pool(16)
             
             # Calculate the PDF for all values in the Time Series
+
             if self.model_type == 0:
-                
-                for _ in range(100):
+                for _ in range(10):
                     pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
                     # Check if the area under the PDF equals one if not adapt the grid size in time and space 
                     pdf = np.array(pdf)
                     dummy_1 = mod.dt
-                    dummy_2 = mod.dx
                     for elem in range(len(pdf)-1):
                         area = simps(pdf[elem,:], x = mod.x)
-                        if area > 1 + 0.02 or area < 1- 0.02:
-                            dt_new = dummy_1/5
-                            dx_new = dummy_2/2
-                            print("The grid size is expanded to dx = " + str(dx_new) +  "and dt = " + str(dt_new))
-                            mod = OpinionFormation(N = 175, T =20, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= dx_new, deltat= dt_new, model_type= self.model_type)
+                        if area > 1 + 0.03 or area < 1- 0.03:
+                            dt_new = dummy_1/2
+                            print("The grid size is expanded to dt = " + str(dt_new))
+                            mod = OpinionFormation(N = 175, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
                             pdf = []
                             break
                     if mod.dt == dummy_1:
                         break
     
             elif self.model_type == 1: 
-                for _ in range(100):
+                for _ in range(10):
                     pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
-                    # Check if the area under the PDF equals one if not adapt the grid size in time
+                    # Check if the area under the PDF equals one if not adapt the grid size in time 
                     pdf = np.array(pdf)
-                    dummy = mod.dt
+                    dummy_1 = mod.dt
                     for elem in range(len(pdf)-1):
-                        area = np.sum(pdf[elem,:]*mod.dx)
-                        if area > 1 + 0.02 or area < 1- 0.02:
-                            mod.dt = mod.dt/10
-                            print("The grid size is expanded by factor 10")
+                        area = simps(pdf[elem,:], x = mod.x)
+                        if area > 1 + 0.03 or area < 1- 0.03:
+                            dt_new = dummy_1/2
+                            print("The grid size is expanded to dt = " + str(dt_new))
+                            mod = OpinionFormation(N = N, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
+                            pdf = []
                             break
-                    if mod.dt == dummy:
+                    if mod.dt == dummy_1:
                         break
+            
             elif self.model_type == 2: 
                 # y to List
                 y_list = list(y)
-                pdf = list(tqdm(pool.starmap(mod.CrankNicolson, zip(tuple(time_series_list), tuple(y_list)))))
+                
+                for _ in range(10):
+                    pdf = list(pool.starmap(mod.CrankNicolson, zip(tuple(time_series_list), tuple(y_list))))
+                    # Check if the area under the PDF equals one if not adapt the grid size in time 
+                    pdf = np.array(pdf)
+                    dummy_1 = mod.dt
+                    for elem in range(len(pdf)-1):
+                        area = simps(pdf[elem,:], x = mod.x)
+                        if area > 1 + 0.03 or area < 1- 0.03:
+                            dt_new = dummy_1/2
+                            print("The grid size is expanded to dt = " + str(dt_new))
+                            mod = OpinionFormation(N = N, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
+                            pdf = []
+                            break
+                    if mod.dt == dummy_1:
+                        break
+                    
             elif self.model_type == 3: 
                 # y to List
                 y_list = list(y)
@@ -131,8 +148,7 @@ class Estimation():
                 if logf[elem] == 0: 
                     raise UncompleteLikelihoodError
 
-            else:
-                logL = np.sum(logf)
+            logL = np.sum(logf)
             print("The Log Likelihood is: " + str(logL) + "  and  " + "The Minimization_Guess was: " + str(guess)) 
             end = time.time()
             dum = end - start
@@ -155,13 +171,12 @@ class Estimation():
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
                     if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],3):
-                        logf[elem] = np.log((np.abs(pdf[x])))
+                        logf[elem] = np.log(pdf[x])
+                if logf[elem] == 0: 
+                    raise UncompleteLikelihoodError
 
-            if np.all(logf == 0):
-                print("Not all likelihoods are stored")
-                pass
-            else:
-                logL = np.sum(logf)
+
+            logL = np.sum(logf)
             
             print("The Log Likelihood is: " + str(logL) + "and" + "The Minimization_Guess was: " + str(guess)) 
             end = time.time()
@@ -242,12 +257,12 @@ class Estimation():
         return r_t
         
 #########################################################################################################################################################################################
-#                                               BFGS Minimisation
+#                                               Nelder Mead Optimization
 #########################################################################################################################################################################################
-    def solver_BFGS(self, initial_guess: list) -> tuple:
+    def solver_Nelder_Mead(self, initial_guess: list) -> tuple:
         """
-        The solver_BFGS function takes in an initial guess for the parameters and returns the 
-        best fit parameters. The function uses a L-BFGS-B minimization algorithm to minimize 
+        The solver_Nelder_Mead function takes in an initial guess for the parameters and returns the 
+        best fit parameters. The function uses a Nelder Mead minimization algorithm to minimize 
         the negative log likelihood function. 
 
         Args:
@@ -274,13 +289,13 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), (0.1, 3)],  callback=None)
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), (0.1, 3)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 1: 
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
-        
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.0001, 6), (-0.5, 0.5), ( 0.1, 3), (5, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 2: 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.0001, None), (-2, 2), ( 0, None), (2, None), (None, None)],  callback=None, options={ 'maxiter': 100, 'iprint': -1})
+            # endogenous N plus Industrial Production
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='Nelder-Mead', bounds = [(0.0001, 6), (-0.5, 0.5), ( 0.1, 3), (5, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 3: 
             pass
         

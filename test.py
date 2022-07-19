@@ -13,25 +13,25 @@ import pandas as pd
 
 
 
-# #######################################################################################################################################
-# #  Plot the transitional Density 
-# #######################################################################################################################################
+#######################################################################################################################################
+#  Plot the transitional Density 
+#######################################################################################################################################
 
 
-test = OpinionFormation(N = 175, T = 30, nu = 0.8, alpha0= 0.01, alpha1= 1.2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
-test_1 =OpinionFormation(N = 175, T = 30, nu = 0.08, alpha0= 0.01, alpha1= 1.1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= 0) 
+test = OpinionFormation(N = 50, T = 2, nu = 3, alpha0= 0.2, alpha1= 1.2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
+test_1 =OpinionFormation(N = 175, T = 2, nu = 0.8, alpha0= -0.01, alpha1= 1.19, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= 0) 
 
 
-area,prob,prob_end = test.CrankNicolson(x_0 = (-0.5), y = 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+area,prob,prob_end = test.CrankNicolson(x_0 = (0.), y = 1, calc_dens = True, converged= False,fast_comp = False)
 plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
 plot_0.surface_plot()
 
-area_1,prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (-.5), y= 1, check_stability = False, calc_dens = True, converged =  False, fast_comp = False)
+area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (0.0), y= 1,calc_dens = True, converged= False, fast_comp = False)
 # # plot_1 = plot.Plotting3D(param = prob_1, x = test_1., t = test_1.t)
 # # plot_1.surface_plot()
 
-# # plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
-# # plot_2.surface_plot()
+# plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
+# plot_2.surface_plot()
 plt.figure(figsize=(7, 6))
 plt.plot(test.t,area, color='blue',
             label='Area Test 1')
@@ -56,6 +56,13 @@ plt.ylabel("Density")
 plt.show()
 
 
+# # Simulated data
+# sim_3= sim.Simulation(N = 175, T = 3, nu = 0.78 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
+# test_data_3 = sim_3.simulation(0, sim_length = 200)
+# plt.plot(test_data_3)
+# plt.show()
+
+
 # #######################################################################################################################################
 # #  Model Type 3 Test
 # #######################################################################################################################################
@@ -76,14 +83,14 @@ plt.show()
 # # #Real Data 
 # from data_reader import data_reader
 
-# data = data_reader(time_period= 360)
+# data = data_reader(time_period= 175)
 # zew = data.zew()/100
 # ip = data.industrial_production()
-# sim_3= sim.Simulation(N = 19.23, T = 30, nu = 0.13  , alpha0 = 0.09, alpha1 = 0.93 ,alpha2 = (-4.55) ,alpha3 = None, y =  ip, deltax = 0.01, deltat = 1/300, model_type =2, seed = 150)  
-# test_data_3 = sim_3.simulation(-0.59, sim_length = 360)
-# # plt.plot(test_data_3)
-# # plt.plot(zew)
-# # plt.show()
+# sim_3= sim.Simulation(N = 19.23, T = 2, nu = 0.13  , alpha0 = 0.09, alpha1 = 0.93 ,alpha2 = (-4.55) ,alpha3 = None, y =  ip, deltax = 0.01, deltat = 1/16, model_type =2, seed = 150)  
+# test_data_3 = sim_3.simulation(-0.59, sim_length = 175)
+# plt.plot(test_data_3)
+# plt.plot(zew)
+# plt.show()
 
 # plt.figure(figsize=(7, 6))
 # plt.plot(test_data_3, color='blue',
