@@ -18,8 +18,8 @@ import pandas as pd
 #######################################################################################################################################
 
 
-test = OpinionFormation(N = 50, T = 2, nu = 3, alpha0= 0.2, alpha1= 1.2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
-test_1 =OpinionFormation(N = 175, T = 2, nu = 0.8, alpha0= -0.01, alpha1= 1.19, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= 0) 
+test = OpinionFormation(N = 50, T = 10, nu = 3, alpha0= 0, alpha1= 2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
+test_1 =OpinionFormation(N = 50, T = 10, nu = 3, alpha0= 0, alpha1= 2, alpha2 = None,alpha3 = None, deltax= 0.001, deltat= 1/16, model_type= 0) 
 
 
 area,prob,prob_end = test.CrankNicolson(x_0 = (0.), y = 1, calc_dens = True, converged= False,fast_comp = False)

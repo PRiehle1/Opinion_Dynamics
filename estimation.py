@@ -48,21 +48,19 @@ class Estimation():
         elif self.model_type == 1: 
             nu, alpha0, alpha1, N = guess
         elif self.model_type == 2: 
-            nu, alpha0, alpha1, N, alpha2= guess
+            nu, alpha0, alpha1, N, alpha2 = guess
         elif self.model_type == 3: 
-            nu, alpha0, alpha1, N, alpha2, alpha3= guess
-
-        #print("The Minimization_Guess is: " + str(guess))
+            nu, alpha0, alpha1, N, alpha2, alpha3 = guess
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 50, T =3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = OpinionFormation(N = N, T = 2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 100, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = alpha3, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         
         # Initialize the log(function(X, Theta))
         logf = np.zeros(len(time_series)-1)
@@ -73,7 +71,7 @@ class Estimation():
             time_series_list = list(time_series)
 
             # Multiprocessing 
-            pool = mp.Pool(16)
+            pool = mp.Pool(1)
             
             # Calculate the PDF for all values in the Time Series
 
@@ -88,7 +86,7 @@ class Estimation():
                         if area > 1 + 0.03 or area < 1- 0.03:
                             dt_new = dummy_1/2
                             print("The grid size is expanded to dt = " + str(dt_new))
-                            mod = OpinionFormation(N = 175, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
+                            mod = OpinionFormation(N = 50, T =3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
                             pdf = []
                             break
                     if mod.dt == dummy_1:
@@ -105,7 +103,7 @@ class Estimation():
                         if area > 1 + 0.03 or area < 1- 0.03:
                             dt_new = dummy_1/2
                             print("The grid size is expanded to dt = " + str(dt_new))
-                            mod = OpinionFormation(N = N, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
+                            mod = OpinionFormation(N = N, T =3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
                             pdf = []
                             break
                     if mod.dt == dummy_1:
@@ -125,7 +123,7 @@ class Estimation():
                         if area > 1 + 0.03 or area < 1- 0.03:
                             dt_new = dummy_1/2
                             print("The grid size is expanded to dt = " + str(dt_new))
-                            mod = OpinionFormation(N = N, T =2, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
+                            mod = OpinionFormation(N = N, T =3, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
                             pdf = []
                             break
                     if mod.dt == dummy_1:
@@ -142,7 +140,7 @@ class Estimation():
 
             for elem in range(len(pdf)-1):
                 for x in range(len(mod.x)):
-                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],2) or np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1]+0.01,2):
+                    if np.around(mod.x[x], decimals= 3) == np.around(time_series[elem+1],2):
                         logf[elem] = np.log(np.abs(pdf[elem,x]))
                 
                 if logf[elem] == 0: 
@@ -155,6 +153,7 @@ class Estimation():
             print("Time past for one caclulaion of the likelihood:  " + str(dum)) 
         
         else:   
+
             start = time.time()
 
             for elem in range(len(time_series)-1):
@@ -174,7 +173,6 @@ class Estimation():
                         logf[elem] = np.log(pdf[x])
                 if logf[elem] == 0: 
                     raise UncompleteLikelihoodError
-
 
             logL = np.sum(logf)
             
@@ -292,10 +290,10 @@ class Estimation():
             res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), (0.1, 3)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 1: 
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.0001, 6), (-0.5, 0.5), ( 0.1, 3), (5, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 2: 
             # endogenous N plus Industrial Production
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='Nelder-Mead', bounds = [(0.0001, 6), (-0.5, 0.5), ( 0.1, 3), (5, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 3: 
             pass
         

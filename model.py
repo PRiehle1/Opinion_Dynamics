@@ -37,7 +37,7 @@ class OpinionFormation():
         self.dt     = deltat 
         
         # Model Parameter to be generated
-        self.x      = np.arange(-1,1+deltax,self.dx)
+        self.x      = np.arange(-1,1+self.dx,self.dx)
         self.t      = np.arange(0,T,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
@@ -133,8 +133,8 @@ class OpinionFormation():
         for i  in range(0,len(pdf)-1):
             pdf_1[i] = (cdf[i+1]-cdf[i])/self.dx
             
-        return pdf_1
-        
+        return pdf_1/simps(pdf_1, self.x)
+
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
         """
@@ -152,31 +152,33 @@ class OpinionFormation():
             np.array: The probability distribution at time t for every point in the domain x
         """
         # Fixed Parametes and Vecotors 
-        dx = self.dx
-        dt = self.dt 
-        x = self.x 
-
-        # Initialize the Matrix for the solver 
-        lhs = np.zeros([len(x), len(x)]) # LHS Matrix
-        rhs = np.zeros([len(x), len(x)]) # RHS Matrix
         
-        # Parameter
-
         # For the first order derivative 
         p_1 = self.dt/(4*self.dx)
         # For the second order derivative
         p_2 = self.dt/(2*(self.dx**2))
+
+
+        # Initialize the Matrix for the solver 
+        lhs = np.zeros([len(self.x), len(self.x)]) # LHS Matrix
+        rhs = np.zeros([len(self.x), len(self.x)]) # RHS Matrix
         
+        # Functions Inside the Fokker Planck Equation
         def g(x):
             return  (1/2) * self.diffusion(x)
 
         def mu(x):
             return  (-1) * self.drift(x)
 
+        drift = np.zeros(len(self.x))
+
+        diff = np.zeros(len(self.x))
 
         # Fill the matrices
 
         for elem in range(len(self.x)):
+            drift[elem] = self.drift(self.x[elem])
+            diff[elem] = self.diffusion(self.x[elem])
             if elem == 0:
 
                 lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
@@ -202,6 +204,10 @@ class OpinionFormation():
                 rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
                 rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
     
+        plt.plot(drift)
+
+        plt.plot(diff)
+        plt.show()
         # Initial Distribution 
         if self.model_type == 0: 
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
@@ -211,35 +217,16 @@ class OpinionFormation():
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
 
         # Part for the tridiagonal Matrix 
-        lower =1
-        upper = 1
-        n = lhs.shape[1]
-        assert(np.all(lhs.shape ==(n,n)))
-    
-        ab = np.zeros((2*n-1, n))
-    
-        for i in range(n):
-            ab[i,(n-1)-i:] = np. diagonal(lhs,(n-1)-i)
+
+        a_b = np.linalg.inv(lhs) @ rhs
         
-        for i in range(n-1): 
-            ab[(2*n-2)-i,:i+1] = np.diagonal(lhs,i-(n-1))
-
-        mid_row_inx = int(ab.shape[0]/2)
-        upper_rows = [mid_row_inx - i for i in range(1, upper+1)]
-        upper_rows.reverse()
-        upper_rows.append(mid_row_inx)
-        lower_rows = [mid_row_inx + i for i in range(1, lower+1)]
-        keep_rows = upper_rows+lower_rows
-        ab = ab[keep_rows,:]
-
         # The Loop
 
         if fast_comp == True: 
             for t in range(1,len(self.t)):
-                area = simps(self.prob[:,t-1]/np.max(self.prob[:,t-1]), x = self.x)
-                rhs_1 = rhs @ ((self.prob[:,t-1]/np.max(self.prob[:,t-1]))/area)
-                self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
 
+                self.prob[:,t] = a_b @ self.prob[:,t-1]
+                self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
             return self.prob[:,-1]
         else:
             
@@ -259,18 +246,16 @@ class OpinionFormation():
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
                         raise WrongDensityValueError(area[t-1], t-1)
                     else: 
-                        area_cor = simps(self.prob[:,t-1], x = self.x)
-                        rhs_1 = rhs @ (self.prob[:,t-1]/area_cor)
-                        self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
+                        self.prob[:,t] = a_b @ self.prob[:,t-1]
+                        self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
                 if converged == False:         
                     return area, self.prob, np.abs(self.prob[:, -1])
                 else: 
                     return area, self.prob[:,-1]
             else: 
                 for t in range(1,len(self.t)):
-                    area = simps(self.prob[:,t-1], x = self.x)
-                    rhs_1 = rhs @ (self.prob[:,t-1]/area)
-                    self.prob[:,t] = solve_banded((1,1),ab,rhs_1)
+                        self.prob[:,t] = a_b @ self.prob[:,t-1]
+                        self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
 
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
