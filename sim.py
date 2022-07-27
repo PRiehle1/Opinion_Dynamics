@@ -4,6 +4,7 @@ from model import OpinionFormation
 import numpy as np 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
 class Simulation(OpinionFormation):
 
@@ -69,7 +70,7 @@ class Simulation(OpinionFormation):
     
     def simulation(self, initial_value: float, sim_length:int):
         time_series = []
-        
+
         for i in tqdm(range(sim_length)):
 
             if i == 0:
@@ -84,19 +85,13 @@ class Simulation(OpinionFormation):
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
                 cdf = cdf/cdf[-1]
-                # Take the inverse of the CDF
-                cdf_inv = np.around(cdf.T, decimals = 10)
                 # Draw a random uniform number
                 u = np.around(np.random.uniform(), decimals= 10)
-                # Search for the closest value in the CDF 
-                absolute_difference_function = lambda list_value : abs(list_value - u)
-                closest_value = min(list(cdf_inv), key=absolute_difference_function)
-                # Take the value from the CDF at the Position of the closest value
-                for x in range(len(cdf_inv)):
-                    if cdf_inv[x] == closest_value:
-                        next_value = self.x[x]
+                # Interpolate the Function 
+                cdf_new = interpolate.interp1d(cdf, self.x)
+                # Insert u 
                 time_series.append(initial_value)
-                time_series.append(next_value)
+                time_series.append(np.around(cdf_new(u),2))
             else:
                 # Calculate the PDF 
                 if self.model_type == 0:    
@@ -110,21 +105,11 @@ class Simulation(OpinionFormation):
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
                 cdf = cdf/cdf[-1]
-                # Take the inverse of the CDF
-                cdf_inv = np.around(cdf.T, decimals = 10)
-                # plt.plot(cdf_inv)
-                # plt.show()
-
                 # Draw a random uniform number
                 u = np.around(np.random.uniform(), decimals= 10)
-                # Search for the closest value in the CDF 
-                absolute_difference_function = lambda list_value : abs(list_value - u)
-                closest_value = min(list(cdf_inv), key=absolute_difference_function)
-                # Take the value from the CDF at the Position of the closest value
-                for x in range(len(cdf_inv)):
-                    if cdf_inv[x] == closest_value:
-                        next_value = self.x[x]
-                time_series.append(next_value)
-                
+                # Interpolate the Function 
+                cdf_new = interpolate.interp1d(cdf, self.x)
+                # Insert u 
+                time_series.append(np.around(cdf_new(u),2))
         return time_series
     

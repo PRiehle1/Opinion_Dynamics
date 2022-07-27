@@ -1,30 +1,29 @@
 # Class for Monte Carlo Estimation of the Time Series: 
 import estimation
 import numpy as np
-import multiprocessing
 import os
 from model import OpinionFormation
 
 
 class MonteCarlo():
 
-    def __init__(self, numSim: int, model: object, estimation: object, multiprocess: bool, real_data: bool) -> None:
+    def __init__(self, numSim: int, model: object, estimation: object, real_data: bool) -> None:
         self.numSim = numSim
         self.estimation = estimation
         self.model = model
-        self.multiprocess = multiprocess
         self.real_data = real_data
   
 
     def estim(self, init_guess) -> np.array:
-        
+
         #### Solver Nelder Mead
         init_guess = list(init_guess)
+
         for elem in range(len(init_guess)):
-            if elem == 1:
-                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.01),4)
-            else:
-                init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.01),4)
+             if elem == 1:
+                 init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.05),4)
+             else:
+                 init_guess[elem] = np.around(init_guess[elem] + np.random.normal(0,0.07),4)
 
         res = self.estimation.solver_Nelder_Mead(init_guess)
 
@@ -127,91 +126,149 @@ class MonteCarlo():
 
     def run(self, init_guess) -> np.array:
 
-        if self.multiprocess == False:
 
-            for i in range(self.numSim):
-                self.estim(tuple(init_guess))
-                #self.estim(tuple(init_guess))
+        self.estim(tuple(init_guess))
         
-        else: 
-            ## Wenn Anzahl der Estimations nicht durch 4 dividierbar sind FEHLERMELDUNG AUSGEBEN und um Änderung bitten/ das Programm das ändern lassen 
-            for i in range(int(self.numSim/6)):
-                jobs = []
-                for d in range(4):
-                    p = multiprocessing.Process(target=self.estim, args= (tuple(init_guess),))
-                    jobs.append(p)
-                    p.start()#
 
-                for proc in jobs:
-                    proc.join()
 
 if __name__ == '__main__':
 
     # Load the Training Data 
     import pandas as pd
     from sympy import *
-    import multiprocessing
     import sim 
     import matplotlib.pyplot as plt
+    import multiprocessing as mp
 
-    # # First Set of Data 
+################################################################################################################################################
+#                                                    Simulated Data
+################################################################################################################################################
+# #   First Set of Data 
+#     numSim = 40
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    #Simulated data
-    # sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 3)  
-    # test_data_1 = sim_1.simulation(0, sim_length = 200)
-    # plt.plot(test_data_1)
-    # plt.show()
+#     init_guess = (1,0,1)
+#     for i in range(int(numSim/5)):
+#         jobs = []
+#         test_data_1 = []
+#         mC_1 = []
+#         for proc in range(5):
+#             # Simulate the time series:      
+#             test_data_1.append(sim_1.simulation(0, sim_length = 200))
+#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-    # # Set up the Monte Carlo Estimation
-    # mC_1 = MonteCarlo(numSim= 1, model = OpinionFormation , estimation= estimation.Estimation(test_data_1,multiprocess= True,model_type=0), multiprocess= False, real_data= False)
-    # mC_1.run(init_guess=(3,0,0.8))
+#         for proc in jobs:
+#             proc.join()
+# # #############################################################    
+#   Second Set of Data 
 
-    # # #Second Set of Data 
+    numSim = 100
+    sim_2 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    # # Simulated data
-    # sim_2 = sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/300, model_type =0, seed = 150)  
-    # test_data_2 = sim_2.simulation(0, sim_length = 200)
-    # #plt.plot(test_data_2)
-    # #plt.show()
+    init_guess = (3,0.2,0.8)
+    for i in range(int(numSim/5)):
+        jobs = []
+        test_data_2 = []
+        mC_2 = []
+        for proc in range(5):
+            # Simulate the time series:      
+            test_data_2.append(sim_2.simulation(0, sim_length = 200))
+            mC_2.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_2[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_2[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
 
-    # # Set up the Monte Carlo Estimation
-    # mC_2 = MonteCarlo(numSim= 5 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_2, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    # mC_2.run(init_guess= (3,0.2,0.8))
+        for proc in jobs:
+            proc.join()
 
-    # #Third Set of Data 
+#     # #Third Set of Data 
 
-    # Simulated data
-    sim_3= sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
-    test_data_3 = sim_3.simulation(0, sim_length = 200)
-    plt.plot(test_data_3)
-    plt.show()
 
-    # # # Set up the Monte Carlo Estimation
-    mC_3 = MonteCarlo(numSim= 3 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_3, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    mC_3.run(init_guess= (3,0,1.2))
+#     numSim = 40
+#     sim_3 = sim.Simulation(N = 50, T = 1.6, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    # # # Fourth Set of Data 
+#     init_guess = (3,0,1.2)
+#     for i in range(int(numSim/5)):
+#         jobs = []
+#         test_data_3 = []
+#         mC_3 = []
+#         for proc in range(5):
+#             # Simulate the time series:      
+#             test_data_3.append(sim_3.simulation(0, sim_length = 200))
+#             mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-    # # # Simulated data
-    # sim_4 = sim.Simulation(N = 50, T = 3, nu = 3 , alpha0 = 0.02, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
-    # test_data_4 = sim_4.simulation(0, sim_length = 600)
-    # plt.plot(test_data_4)
-    # plt.show()
+#         for proc in jobs:
+#             proc.join()
 
-    # # Set up the Monte Carlo Estimation
-    # mC_4 = MonteCarlo(numSim= 5 , model = OpinionFormation ,estimation= estimation.Estimation(test_data_4, multiprocess= True, model_type= 0), multiprocess= False, real_data = False)
-    # mC_4.run(init_guess= (3,0.02,1.2))
+#     # # # Fourth Set of Data 
 
-    #Real Data 
+#     numSim = 40
+#     sim_4 = sim.Simulation(N = 50, T = 1.6, nu = 3 , alpha0 = 0.2, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+
+#     init_guess = (3,0.2,1.2)
+#     for i in range(int(numSim/5)):
+#         jobs = []
+#         test_data_4 = []
+#         mC_4 = []
+#         for proc in range(5):
+#             # Simulate the time series:      
+#             test_data_4.append(sim_4.simulation(0, sim_length = 200))
+#             mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
+
+#         for proc in jobs:
+#             proc.join()
+################################################################################################################################################
+#                                                   Real Data 
+################################################################################################################################################
+    #  
     from data_reader import data_reader
 
-    data = data_reader()
+    data = data_reader(175)
     zew = data.zew()/100
-    #ip = data.industrial_production()
+    ip = data.industrial_production()
+    numSim = 20
+   
+    # init_guess = (0.8,0,1.18)
+    # for i in range(int(numSim/5)):
+    #     jobs = []
+    #     data = []
+    #     mC_1 = []
+    #     for proc in range(5):
+    #         # Simulate the time series:      
+    #         data.append(zew)
+    #         mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(data[proc],multiprocess= False,model_type=0), real_data= True))
+    #         p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
 
-    # # Model with exogenous N
-    # mC = MonteCarlo(numSim= 40 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= ip, multiprocess= True, model_type= 0), multiprocess= False, real_data = True)
-    # mC.run(init_guess= (0.78,0.01, 1.19))
+    #     for proc in jobs:
+    #         proc.join()
+
+    # # Model with endogenous N
+    # init_guess = (0.12,0.09,0.99, 22, -4.5)
+    # for i in range(int(numSim/5)):
+    #     jobs = []
+    #     data = []
+    #     mC_1 = []
+    #     for proc in range(5):
+    #         # Simulate the time series:      
+    #         data.append(zew)
+    #         mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(data[proc], y = ip, multiprocess= False,model_type=2), real_data= True))
+    #         p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
+
+    #     for proc in jobs:
+    #         proc.join()
 
     # # Model with endogenous N 
     # mC = MonteCarlo(numSim= 1 , model = OpinionFormation ,estimation= estimation.Estimation(zew, y= None, multiprocess= True, model_type= 1), multiprocess= False, real_data = True)

@@ -8,27 +8,40 @@ import random
 import montecarlo
 import estimation
 import pandas as pd 
-## CDF 
+from scipy import interpolate, integrate
 
 
-
+# data = []
+# for _ in range(1):
+    
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.2, alpha1 = .8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = None)  
+#     sim_2 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.2, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = None) 
+    
+#     test_data_1 = sim_1.simulation(0, sim_length = 200)
+#     test_data_2 = sim_2.simulation(0, sim_length = 200)
+#     data.append(test_data_1)
+#     data.append(test_data_2)
+#     plt.plot(test_data_1)
+#     plt.plot(test_data_2)
+#     plt.show()
 
 #######################################################################################################################################
 #  Plot the transitional Density 
-#######################################################################################################################################
+############################################################
+# ###########################################################################
 
 
-test = OpinionFormation(N = 50, T = 10, nu = 3, alpha0= 0, alpha1= 2, alpha2 = None,alpha3 = None,deltax= 0.01, deltat= 1/16, model_type= 0)    #
-test_1 =OpinionFormation(N = 50, T = 10, nu = 3, alpha0= 0, alpha1= 2, alpha2 = None,alpha3 = None, deltax= 0.001, deltat= 1/16, model_type= 0) 
+test = OpinionFormation(N = 50, T =1000 , nu = 3 , alpha0 = 0.0, alpha1 = 1.2,alpha2 = None,alpha3 = None,deltax= 0.02, deltat= 1/16, model_type= 0)    #
+test_1 =OpinionFormation(N = 50, T = 1, nu = 3, alpha0= 0.2, alpha1= 0.8, alpha2 = None,alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= 0) 
 
 
-area,prob,prob_end = test.CrankNicolson(x_0 = (0.), y = 1, calc_dens = True, converged= False,fast_comp = False)
+area,prob,prob_end = test.CrankNicolson(x_0 = (-0.9), y = 1, calc_dens = True, converged= False,fast_comp = False)
 plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
 plot_0.surface_plot()
 
-area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (0.0), y= 1,calc_dens = True, converged= False, fast_comp = False)
-# # plot_1 = plot.Plotting3D(param = prob_1, x = test_1., t = test_1.t)
-# # plot_1.surface_plot()
+area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = (-0.5), y= 1,calc_dens = True, converged= False, fast_comp = False)
+plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+plot_1.surface_plot()
 
 # plot_2 = plot.Plotting3D(param = prob_2, x = test_2.x, t = test_2.t)
 # plot_2.surface_plot()
@@ -56,41 +69,23 @@ plt.ylabel("Density")
 plt.show()
 
 
-# # Simulated data
-# sim_3= sim.Simulation(N = 175, T = 3, nu = 0.78 , alpha0 = 0.01, alpha1 = 1.19,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/16, model_type =0, seed = 150)  
-# test_data_3 = sim_3.simulation(0, sim_length = 200)
-# plt.plot(test_data_3)
-# plt.show()
 
 
-# #######################################################################################################################################
-# #  Model Type 3 Test
-# #######################################################################################################################################
-# # from data_reader import data_reader
+# # #######################################################################################################################################
+# # #  Model Type 3 Test
+# # #######################################################################################################################################
+from data_reader import data_reader
 
-# # data = data_reader(time_period= 175)
-
-# # zew = data.zew()/100
-# # ip = data.industrial_production()
-
-# # model_1 = model.OpinionFormation(N = 50, T = 3, nu = 3 , alpha0 = 0., alpha1 = 1.2 ,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/16, model_type =0)
-# # prob_end = model_1.CrankNicolson(x_0 = 0.3,check_stability = True, calc_dens = False, converged =  False, fast_comp = True)
-# # plt.plot(prob_end)
-# # plt.show()
+data = data_reader(time_period=175)
+zew = data.zew()/100
+ip = data.industrial_production()
+sim_3= sim.Simulation(N = 15.62, T =1 , nu = 0.09644127859916351575  , alpha0 = 0.2237817, alpha1 = 0.900 ,alpha2 = -7.2 ,alpha3 = None, y =  ip, deltax = 0.02, deltat = 1/100, model_type =2, seed = 150)  
+test_data_3 = sim_3.simulation(-0.59, sim_length = 175)
 
 
-# # # Simulated data
-# # #Real Data 
-# from data_reader import data_reader
-
-# data = data_reader(time_period= 175)
-# zew = data.zew()/100
-# ip = data.industrial_production()
-# sim_3= sim.Simulation(N = 19.23, T = 2, nu = 0.13  , alpha0 = 0.09, alpha1 = 0.93 ,alpha2 = (-4.55) ,alpha3 = None, y =  ip, deltax = 0.01, deltat = 1/16, model_type =2, seed = 150)  
-# test_data_3 = sim_3.simulation(-0.59, sim_length = 175)
-# plt.plot(test_data_3)
-# plt.plot(zew)
-# plt.show()
+plt.plot(test_data_3)
+plt.plot(zew)
+plt.show()
 
 # plt.figure(figsize=(7, 6))
 # plt.plot(test_data_3, color='blue',
@@ -102,3 +97,12 @@ plt.show()
 # plt.xlabel("Time")
 # plt.ylabel("Density")
 # plt.show()
+
+# from statsmodels.tsa.stattools import adfuller
+
+# result = adfuller(zew)
+# print('ADF Statistic: %f' % result[0])
+# print('p-value: %f' % result[1])
+# print('Critical Values:')
+# for key, value in result[4].items():
+# 	print('\t%s: %.3f' % (key, value))

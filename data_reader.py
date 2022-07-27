@@ -40,7 +40,7 @@ class data_reader():
             ip = ip[0:self.time_period]
         
         if hp_filter == True: 
-            ip_cyle, ip_tred = hpfilter(ip,129600)
+            ip_cyle,_ = hpfilter(ip, 129600)
             return ip_cyle/100
         else: 
             return ip/100

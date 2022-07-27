@@ -4,6 +4,8 @@ from errors import *
 from scipy.integrate import simps
 from scipy.linalg import solve_banded
 import matplotlib.pyplot as plt 
+from scipy.sparse import coo_matrix
+from scipy.sparse.linalg import spsolve
 
 class OpinionFormation():
     
@@ -38,7 +40,7 @@ class OpinionFormation():
         
         # Model Parameter to be generated
         self.x      = np.arange(-1,1+self.dx,self.dx)
-        self.t      = np.arange(0,T,self.dt, dtype= 'd')
+        self.t      = np.arange(0,T+self.dt,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
     # Helper Functions
@@ -83,11 +85,11 @@ class OpinionFormation():
         
         """
         if self.model_type == 0:
-            return  (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x)))
+            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 1: 
-            return   (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) *(1/self.N)
+            return   (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) 
         elif self.model_type == 2: 
-            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y))) *(1/self.N)
+            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y)))
         elif self.model_type == 3: 
             return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l))) 
         
@@ -122,18 +124,18 @@ class OpinionFormation():
         
         for i in range(0,len(cdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt/self.N))))
             cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
             
         for i in range(0,len(pdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt/self.N))))
             pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i])
-            
+          
         for i  in range(0,len(pdf)-1):
             pdf_1[i] = (cdf[i+1]-cdf[i])/self.dx
-            
-        return pdf_1/simps(pdf_1, self.x)
+        pdf_1[0] = pdf_1[-1] = 0 
+        return pdf_1
 
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
@@ -154,10 +156,9 @@ class OpinionFormation():
         # Fixed Parametes and Vecotors 
         
         # For the first order derivative 
-        p_1 = self.dt/(4*self.dx)
+        p_1 = self.dt/(8*self.dx)
         # For the second order derivative
         p_2 = self.dt/(2*(self.dx**2))
-
 
         # Initialize the Matrix for the solver 
         lhs = np.zeros([len(self.x), len(self.x)]) # LHS Matrix
@@ -165,49 +166,69 @@ class OpinionFormation():
         
         # Functions Inside the Fokker Planck Equation
         def g(x):
-            return  (1/2) * self.diffusion(x)
+            return  (1/(2*self.N)) * self.diffusion(x, y = y)
 
         def mu(x):
-            return  (-1) * self.drift(x)
-
-        drift = np.zeros(len(self.x))
-
-        diff = np.zeros(len(self.x))
+            return  (-1) * self.drift(x, y = y )
 
         # Fill the matrices
 
         for elem in range(len(self.x)):
-            drift[elem] = self.drift(self.x[elem])
-            diff[elem] = self.diffusion(self.x[elem])
+
             if elem == 0:
 
-                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
-                lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
+                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) +  p_2 * g(x = self.x[elem]))
+                lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
 
-                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
-                rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
+                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) - p_2 * g(x = self.x[elem]))
+                rhs[elem, elem+1] = (p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) + p_2*g(x = self.x[elem+1]))
 
             
             elif elem == len(self.x)-1:
-                lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
-                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
+                lhs[elem,elem-1] = (p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) +  p_2 * g(x = self.x[elem]))
 
-                rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
-                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
+                rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
+                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem]))
                             
             else:                 
-                lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
-                lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
-                lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
+                lhs[elem,elem-1] = (p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) +  2* p_2 * g(x = self.x[elem]))
+                lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
 
-                rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
-                rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
-                rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
+                rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
+                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) - 2 * p_2 * g(x = self.x[elem]))
+                rhs[elem, elem+1] = (p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) + p_2*g(x = self.x[elem+1]))
     
-        plt.plot(drift)
 
-        plt.plot(diff)
-        plt.show()
+        # for elem in range(len(self.x)):
+
+        #     if elem == 0:
+
+        #         lhs[elem, elem] = (1 + p_2 * g(x = self.x[elem]))
+        #         lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
+
+        #         rhs[elem, elem] = (1 - p_2 * g(x = self.x[elem]))
+        #         rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
+
+            
+        #     elif elem == len(self.x)-1:
+        #         lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
+        #         lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
+
+        #         rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
+        #         rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
+                            
+        #     else:                 
+        #         lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
+        #         lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
+        #         lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
+
+        #         rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
+        #         rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
+        #         rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1])) 
+    
+    
         # Initial Distribution 
         if self.model_type == 0: 
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
@@ -216,17 +237,16 @@ class OpinionFormation():
         elif self.model_type == 2:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
 
-        # Part for the tridiagonal Matrix 
+        rhs = coo_matrix(rhs).tocsr()
+        lhs = coo_matrix(lhs).tocsr()
 
-        a_b = np.linalg.inv(lhs) @ rhs
-        
-        # The Loop
 
         if fast_comp == True: 
             for t in range(1,len(self.t)):
-
-                self.prob[:,t] = a_b @ self.prob[:,t-1]
+                self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
+                self.prob[:,t][self.prob[:,t] < 0] = 0.000001
                 self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
+                self.prob[0,t] = self.prob[-1,t] = 0
             return self.prob[:,-1]
         else:
             
@@ -244,17 +264,22 @@ class OpinionFormation():
                 for t in range(1,len(self.t)): 
                     area[t-1] = simps(self.prob[:,t-1], x = self.x)
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
-                        raise WrongDensityValueError(area[t-1], t-1)
+                       raise WrongDensityValueError(area[t-1], t-1)
                     else: 
-                        self.prob[:,t] = a_b @ self.prob[:,t-1]
+                        self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
+                        self.prob[:,t][self.prob[:,t] < 0] = 0.0001
+                        self.prob[0,t] = self.prob[-1,t] = 0
                         self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
+                        self.prob[0,t] = self.prob[-1,t] = 0
                 if converged == False:         
-                    return area, self.prob, np.abs(self.prob[:, -1])
+                    return area, self.prob, self.prob[:, -1]
                 else: 
                     return area, self.prob[:,-1]
             else: 
                 for t in range(1,len(self.t)):
-                        self.prob[:,t] = a_b @ self.prob[:,t-1]
+                        self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
+                        self.prob[0,t] = self.prob[-1,t] = 0
+                        self.prob[:,t][self.prob[:,t] < 0] = 0
                         self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
 
                 if converged == False:         
