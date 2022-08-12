@@ -173,9 +173,9 @@ class OpinionFormation():
 
         # Fill the matrices
 
-        for elem in range(len(self.x)):
+        for elem in range(len(self.prob)):
 
-            if elem == 0:
+            if elem == 1:
 
                 lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) +  p_2 * g(x = self.x[elem]))
                 lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
@@ -186,48 +186,19 @@ class OpinionFormation():
             
             elif elem == len(self.x)-1:
                 lhs[elem,elem-1] = (p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
-                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) +  p_2 * g(x = self.x[elem]))
+                lhs[elem, elem] = (1 + p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) +  p_2 * g(x = self.x[elem]))
 
                 rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
-                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem]))
+                rhs[elem, elem] = (1 - p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem]))
                             
             else:                 
-                lhs[elem,elem-1] = (p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem,elem-1] = (p_1 * (mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
                 lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) +  2* p_2 * g(x = self.x[elem]))
                 lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
 
                 rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
                 rhs[elem, elem] = (1 + p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) - 2 * p_2 * g(x = self.x[elem]))
                 rhs[elem, elem+1] = (p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) + p_2*g(x = self.x[elem+1]))
-    
-
-        # for elem in range(len(self.x)):
-
-        #     if elem == 0:
-
-        #         lhs[elem, elem] = (1 + p_2 * g(x = self.x[elem]))
-        #         lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
-
-        #         rhs[elem, elem] = (1 - p_2 * g(x = self.x[elem]))
-        #         rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1]))
-
-            
-        #     elif elem == len(self.x)-1:
-        #         lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
-        #         lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
-
-        #         rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
-        #         rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
-                            
-        #     else:                 
-        #         lhs[elem,elem-1] = (p_1 * mu(x = self.x[elem-1]) - p_2 * g(x = self.x[elem-1]))
-        #         lhs[elem, elem] = (1 + p_2* 2 * g(x = self.x[elem]))
-        #         lhs[elem, elem+1] = (-p_1* mu( x = self.x[elem+1]) - p_2*g(x = self.x[elem+1]))
-
-        #         rhs[elem,elem-1] = (-p_1 * mu(x = self.x[elem-1]) + p_2 * g(x = self.x[elem-1]))
-        #         rhs[elem, elem] = (1 - p_2* 2 * g(x = self.x[elem]))
-        #         rhs[elem, elem+1] = (p_1* mu( x = self.x[elem+1]) + p_2*g(x = self.x[elem+1])) 
-    
     
         # Initial Distribution 
         if self.model_type == 0: 
@@ -243,10 +214,10 @@ class OpinionFormation():
 
         if fast_comp == True: 
             for t in range(1,len(self.t)):
-                self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                self.prob[:,t][self.prob[:,t] < 0] = 0.000001
-                self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
-                self.prob[0,t] = self.prob[-1,t] = 0
+                    self.prob[:,t][self.prob[:,t] < 0] = 0
+                    self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
+                    self.prob[:,t][self.prob[:,t] < 0] = 0
+                    self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
             return self.prob[:,-1]
         else:
             
@@ -266,11 +237,11 @@ class OpinionFormation():
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
                        raise WrongDensityValueError(area[t-1], t-1)
                     else: 
+                        self.prob[:,t][self.prob[:,t] < 0] = 0
                         self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                        self.prob[:,t][self.prob[:,t] < 0] = 0.0001
-                        self.prob[0,t] = self.prob[-1,t] = 0
+                        self.prob[:,t][self.prob[:,t] < 0] = 0
                         self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
-                        self.prob[0,t] = self.prob[-1,t] = 0
+                            
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 
@@ -278,10 +249,10 @@ class OpinionFormation():
             else: 
                 for t in range(1,len(self.t)):
                         self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                        self.prob[0,t] = self.prob[-1,t] = 0
+                        
                         self.prob[:,t][self.prob[:,t] < 0] = 0
                         self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
-
+                        self.prob[0,t] = self.prob[-1,t] = 0
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
                 else: 

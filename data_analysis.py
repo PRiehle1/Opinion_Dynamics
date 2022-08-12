@@ -4,9 +4,9 @@ import pandas as pd
 # # Data Set 1 
 
 data_set_1 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-nu_1 = data_set_1.iloc[0:,0]
-a0_1 = data_set_1.iloc[0:,1]
-a1_1 = data_set_1.iloc[0:,2]
+nu_1 = data_set_1.iloc[0:200,0]
+a0_1 = data_set_1.iloc[0:200,1]
+a1_1 = data_set_1.iloc[0:200,2]
 
 print("\n Estimates Data Set 1 \n" )
 print(nu_1.mean(), nu_1.var(), nu_1.std()/sqrt(len(nu_1)))
@@ -14,41 +14,41 @@ print(a0_1.mean(), a0_1.var(), a0_1.std()/sqrt(len(nu_1)))
 print(a1_1.mean(), a1_1.var(), a1_1.std()/sqrt(len(nu_1)))
 
 
-# # Data Set 2
+# Data Set 2
 
-# data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-# nu_2 = data_set_1.iloc[42:81,0]
-# a0_2 = data_set_1.iloc[42:81,1]
-# a1_2 = data_set_1.iloc[42:81,2]
+data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+nu_2 = data_set_1.iloc[201:401,0]
+a0_2 = data_set_1.iloc[201:401,1]
+a1_2 = data_set_1.iloc[201:401,2]
 
-# print("\n Estimates Data Set 2 \n" )
-# print(nu_2.mean(), nu_2.var(), nu_2.std()/sqrt(len(nu_1)))
-# print(a0_2.mean(), a0_2.var(), a0_2.std()/sqrt(len(nu_1)))
-# print(a1_2.mean(), a1_2.var(), a1_2.std()/sqrt(len(nu_1)))
+print("\n Estimates Data Set 2 \n" )
+print(nu_2.mean(), nu_2.var(), nu_2.std()/sqrt(len(nu_2)))
+print(a0_2.mean(), a0_2.var(), a0_2.std()/sqrt(len(nu_2)))
+print(a1_2.mean(), a1_2.var(), a1_2.std()/sqrt(len(nu_2)))
 
-# # Data Set 3
+# Data Set 3
 
-# data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-# nu_3 = data_set_1.iloc[82:121,0]
-# a0_3 = data_set_1.iloc[82:121,1]
-# a1_3 = data_set_1.iloc[82:121,2]
+data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+nu_3 = data_set_1.iloc[402:602,0]
+a0_3 = data_set_1.iloc[402:602,1]
+a1_3 = data_set_1.iloc[402:602,2]
 
-# print("\n Estimates Data Set 3 \n" )
-# print(nu_3.mean(), nu_3.var(), nu_3.std()/sqrt(len(nu_1)))
-# print(a0_3.mean(), a0_3.var(), a0_3.std()/sqrt(len(nu_1)))
-# print(a1_3.mean(), a1_3.var(), a1_3.std()/sqrt(len(nu_1)))
+print("\n Estimates Data Set 3 \n" )
+print(nu_3.mean(), nu_3.var(), nu_3.std()/sqrt(len(nu_1)))
+print(a0_3.mean(), a0_3.var(), a0_3.std()/sqrt(len(nu_1)))
+print(a1_3.mean(), a1_3.var(), a1_3.std()/sqrt(len(nu_1)))
 
-# # Data Set 4
+# Data Set 4
 
-# data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-# nu_4 = data_set_1.iloc[122:,0]
-# a0_4 = data_set_1.iloc[122:,1]
-# a1_4 = data_set_1.iloc[122:,2]
+data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+nu_4 = data_set_1.iloc[603:,0]
+a0_4 = data_set_1.iloc[603:,1]
+a1_4 = data_set_1.iloc[603:,2]
 
-# print("\n Estimates Data Set 4 \n" )
-# print(nu_4.mean(), nu_4.var(), nu_4.std()/sqrt(len(nu_1)))
-# print(a0_4.mean(), a0_4.var(), a0_4.std()/sqrt(len(nu_1)))
-# print(a1_4.mean(), a1_4.var(), a1_4.std()/sqrt(len(nu_1)))
+print("\n Estimates Data Set 4 \n" )
+print(nu_4.mean(), nu_4.var(), nu_4.std()/sqrt(len(nu_1)))
+print(a0_4.mean(), a0_4.var(), a0_4.std()/sqrt(len(nu_1)))
+print(a1_4.mean(), a1_4.var(), a1_4.std()/sqrt(len(nu_1)))
 
 
 

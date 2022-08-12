@@ -108,7 +108,7 @@ class Simulation(OpinionFormation):
                 # Draw a random uniform number
                 u = np.around(np.random.uniform(), decimals= 10)
                 # Interpolate the Function 
-                cdf_new = interpolate.interp1d(cdf, self.x)
+                cdf_new = interpolate.interp1d(cdf, self.x, fill_value="extrapolate")
                 # Insert u 
                 time_series.append(np.around(cdf_new(u),2))
         return time_series
