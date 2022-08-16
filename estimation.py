@@ -55,7 +55,7 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 50, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
@@ -264,14 +264,14 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = dual_annealing(self.neglogL, bounds = [(0.01, 8), (-0.4, 0.4), (0.1, 3)])
-            #res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 6), (-0.4, 0.4), ( 0.1, 3)],  callback=None)
+            #res = dual_annealing(self.neglogL, bounds = [(0.01, 8), (-0.4, 0.4), (0.1, 3)])
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 6), (-0.4, 0.4), ( 0.1, 3)],  callback=None)
         elif self.model_type == 1: 
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 2: 
             # endogenous N plus Industrial Production
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='Nelder-Mead', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
         elif self.model_type == 3: 
             pass
         
