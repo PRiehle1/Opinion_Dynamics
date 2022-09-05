@@ -44,7 +44,6 @@ class Estimation():
     
         # Parameters to be estimated
         if self.model_type == 0:
-            #T = guess
             nu_guess, alpha0_guess, alpha1_guess = guess
         elif self.model_type == 1: 
             nu, alpha0, alpha1, N = guess
@@ -52,16 +51,21 @@ class Estimation():
             nu, alpha0, alpha1, N, alpha2 = guess
         elif self.model_type == 3: 
             nu, alpha0, alpha1, N, alpha2, alpha3 = guess
+        elif self.model_type == 4: 
+            nu, alpha0, alpha1, N, alpha3 = guess
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/175, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.02, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 4: 
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+        
         
         # Initialize the log(function(X, Theta))
         logf = []
@@ -131,16 +135,18 @@ class Estimation():
             for elem in range(len(time_series)-1):
                 #Solve the Fokker Plank Equation: 
                 if self.model_type == 0 or self.model_type == 1:
-                    pdf = mod.CrankNicolson(x_0 = time_series[elem])#, y = self.y[elem])
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem])
                 elif self.model_type == 2: 
                     pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem])
                 elif self.model_type == 3: 
                     pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
+                elif self.model_type == 4: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], x_l = x_l[elem])
                 
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2) or np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1]+.01,2):
-                        if pdf[x] == 0: 
+                    if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2):
+                        if pdf[x] <= 0: 
                             
                             pdf[x] = 0.0000000001
                             logf.append(np.log((pdf[x])))
@@ -174,61 +180,136 @@ class Estimation():
         nlogL = (-1) * self.logL(guess= guess)
         return nlogL 
 
-    def gradient(self, guess_initial: tuple, eps: float) -> np.array:
-        """
-        The gradient function calculates the gradient of the log likelihood function at a given point. 
-        The gradient is a vector with four components, one for each parameter in our model. 
-        It is calculated by taking the partial derivative of each component of the log likelihood function with respect to that parameter.
+    def outer_product_gradient(self, guess: tuple, eps: float) -> np.array:
 
-        Args:
-            guess_initial (tuple): the actual guess of the parameters
-            eps (float): epsilion for the gradient calculation 
+        # First Step: Caluclation of the log likelihood at xj for given theta 
 
-        Returns:
-            np.array: array of the gradient values
-             
-        """
+        # Preface
+        time_series = self.time_series
+        y = self.y
+        x_l = self.x_l
+        product = []
+        # Parameters to be estimated
+        if self.model_type == 0:
+            nu_guess, alpha0_guess, alpha1_guess = guess
+        elif self.model_type == 1: 
+            nu, alpha0, alpha1, N = guess
+        elif self.model_type == 2: 
+            nu, alpha0, alpha1, N, alpha2 = guess
+        elif self.model_type == 3: 
+            nu, alpha0, alpha1, N, alpha2, alpha3 = guess
+        elif self.model_type == 4: 
+            nu, alpha0, alpha1, N, alpha3 = guess
 
-        print("Calculate the Gradient")
+
+        # The Model
+        if self.model_type == 0:
+            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 1: 
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 2: 
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 3: 
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+        elif self.model_type == 4: 
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
         
+        # Initialize the log(function(X, Theta))
+        logf = []
+        ######################################################################################################################################
         # Convert the gues tuple to list
-        guess_in = list(guess_initial)
+        guess_in = list(guess)
         
         # Initialize the Gradient Column Vector
-        g = np.zeros([3,1]) # The Gradient is a column vector
+        g = np.zeros([len(guess_in),1]) # The Gradient is a column vector
 
-        # Log Likelihood of the guess
-        logL = self.logL(guess_in)
-        
         guess_r = guess_in.copy()
-        #guess_l = guess_in.copy()
         
-        for param in range(len(guess_in)):
-            guess_r[param] = guess_r[param] + eps 
-            #guess_l[param] = guess_l[param] - eps
+        for elem in range(len(time_series)-1):
 
-            g[param] = (self.logL(guess_r) - logL)/(eps)
-            
-            guess_r = guess_in.copy()
-            #guess_l = guess_in.copy()
-        
-        return g
-    
-    def cov_matrix(self, gradient: np.array) -> np.array:
-        """
-        The cov_matrix function takes in the gradient and returns the outer product which is the variance-covariance matrix 
+            for param in range(len(guess_in)):
+                guess_r[param] = guess_r[param] + eps 
+                
+                # Calculate logf
+                #Solve the Fokker Plank Equation: 
+                if self.model_type == 0 or self.model_type == 1:
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem])
+                elif self.model_type == 2: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem])
+                elif self.model_type == 3: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
+                elif self.model_type == 4: 
+                    pdf = mod.CrankNicolson(x_0 = time_series[elem], x_l = x_l[elem])
 
-        Args:
-            gradient (np.array): Pass the gradient that is used to calculate the covariance matrix
+                # Search for the Value of the PDF at X_k+1
+                for x in range(len(mod.x)):
+                    if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2):
+                        if pdf[x] == 0: 
+                            pdf[x] = 0.0000000001
+                            logf = np.log((pdf[x]))
+                        else:
+                            if pdf[x] == 0:
+                                print("PDF at x is zero")
+                            logf =np.log((pdf[x]))
+                
+                # Calculate logf_r 
+                # Parameters to be estimated
+                if self.model_type == 0:
+                    nu_guess, alpha0_guess, alpha1_guess = guess_r
+                elif self.model_type == 1: 
+                    nu, alpha0, alpha1, N = guess_r
+                elif self.model_type == 2: 
+                    nu, alpha0, alpha1, N, alpha2 = guess_r
+                elif self.model_type == 3: 
+                    nu, alpha0, alpha1, N, alpha2, alpha3 = guess_r
+                elif self.model_type == 4: 
+                    nu, alpha0, alpha1, N, alpha3 = guess
 
-        Returns:
-            np.array: The covariance matrix of the gardient
-            
-        """
-        
-        r_t = (len(self.time_series)) * np.dot(gradient,gradient.T)
-        
-        return r_t
+                # The Model
+                if self.model_type == 0:
+                    mod_r = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+                elif self.model_type == 1: 
+                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+                elif self.model_type == 2: 
+                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+                elif self.model_type == 3: 
+                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+                elif self.model_type == 4: 
+                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
+                
+                #Solve the Fokker Plank Equation: 
+                if self.model_type == 0 or self.model_type == 1:
+                    pdf_r = mod_r.CrankNicolson(x_0 = time_series[elem])
+                elif self.model_type == 2: 
+                    pdf_r = mod_r.CrankNicolson(x_0 = time_series[elem], y = y[elem])
+                elif self.model_type == 3: 
+                    pdf_r = mod_r.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
+                elif self.model_type == 4: 
+                    pdf_r = mod.CrankNicolson(x_0 = time_series[elem], x_l = x_l[elem])
+
+                # Search for the Value of the PDF at X_k+1
+                for x_r in range(len(mod_r.x)):
+                    if np.around(mod_r.x[x_r], decimals= 2) == np.around(time_series[elem+1],2):
+                        if pdf_r[x_r] == 0: 
+                            pdf_r[x_r] = 0.0000000001
+                            logf_r = np.log((pdf_r[x_r]))
+                        else:
+                            if pdf_r[x_r] == 0:
+                                print("PDF at x is zero")
+                            logf_r=np.log((pdf_r[x_r]))   
+
+                g[param] = (logf_r - logf)/(eps)
+                guess_r = guess_in.copy()
+
+            product.append(g @ g.T) 
+
+        for elem in range(len(product)):
+            if elem == 0: 
+                sum = product[elem]
+            else:
+                sum = sum + product[elem]    
+        opg = np.linalg.inv(1/len(product) * sum)
+        return opg    
         
 #########################################################################################################################################################################################
 #                                               Nelder Mead Optimization
@@ -255,6 +336,8 @@ class Estimation():
             nu, alpha0, alpha1, N, alpha2= initial_guess
         elif self.model_type == 3: 
             nu, alpha0, alpha1, N, alpha2, alpha3= initial_guess
+        elif self.model_type == 4: 
+            nu, alpha0, alpha1, N, alpha3= initial_guess
         
         print("The Initial guess" + str(initial_guess))
         
@@ -264,17 +347,20 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            #res = dual_annealing(self.neglogL, bounds = [(0.01, 8), (-0.4, 0.4), (0.1, 3)])
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, 6), (-0.4, 0.4), ( 0.1, 3)],  callback=None)
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, None), (None, None), ( 0.1, None)], callback=None, options={'gtol': 1e-03, 'eps': 1.4901161193847656e-04})
         elif self.model_type == 1: 
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None)],  callback=None,options={'gtol': 1e-03, 'eps': 1.4901161193847656e-04})
         elif self.model_type == 2: 
             # endogenous N plus Industrial Production
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.001, 6), (-0.5, 0.5), ( 0.1, 3), (2, 175), (-10,10)],  callback=None, options= {'xatol': 0.01, 'fatol': 0.01,'adaptive': True})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None), (None, None)],  callback=None,options={'gtol': 1e-03, 'eps': 1.4901161193847656e-04})
         elif self.model_type == 3: 
-            pass
-        
+            # endogenous N plus Industrial Production plus Lagged Time Series
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None), (None, None), (None, None)],  callback=None,options={'gtol': 1e-03, 'eps': 1.4901161193847656e-04})
+        elif self.model_type == 4: 
+            # endogenous N plus Lagged Feedback
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None), (None, None)],  callback=None,options={'gtol': 1e-03, 'eps': 1.4901161193847656e-04})
+
         print('Exiting :', mp.current_process().name)
 
         print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))

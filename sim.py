@@ -74,6 +74,8 @@ class Simulation(OpinionFormation):
         for i in tqdm(range(sim_length)):
 
             if i == 0:
+                # Add initial value
+                time_series.append(initial_value)
                 # Calculate the PDF 
                 if self.model_type == 0:    
                     pdf = self.CrankNicolson(x_0 = initial_value)
@@ -81,35 +83,68 @@ class Simulation(OpinionFormation):
                     pdf = self.CrankNicolson(x_0 = initial_value)
                 elif self.model_type == 2: 
                     pdf = self.CrankNicolson(x_0 = initial_value, y = self.y[i])
+                elif self.model_type == 3: 
+                    pdf = self.CrankNicolson(x_0 = initial_value, y = self.y[i], x_l = initial_value)
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
                 cdf = cdf/cdf[-1]
                 # Draw a random uniform number
-                u = np.around(np.random.uniform(), decimals= 10)
-                # Interpolate the Function 
-                cdf_new = interpolate.interp1d(cdf, self.x)
-                # Insert u 
-                time_series.append(initial_value)
-                time_series.append(np.around(cdf_new(u),2))
+                u = np.random.uniform()
+                # Take the inverse of the CDF
+                cdf_inv = cdf.T
+
+                # Search for the closest value in the CDF 
+                absolute_difference_function = lambda list_value : abs(list_value - u)
+                closest_value = min(list(cdf_inv), key=absolute_difference_function)
+                # Take the value from the CDF at the Position of the closest value
+                for x in range(len(cdf_inv)):
+                    if cdf_inv[x] == closest_value:
+                        next_value = self.x[x]
+        
+                time_series.append(next_value)
+                
+                # # Interpolate the Function 
+                # cdf_new = interpolate.interp1d(cdf, self.x)
+                
+                # # Insert u 
+                # time_series.append(float(cdf_new(u)))
             else:
                 # Calculate the PDF 
                 if self.model_type == 0:    
                     pdf = self.CrankNicolson(x_0 = time_series[i])
+                
                 elif self.model_type == 1: 
                     pdf = self.CrankNicolson(x_0 = time_series[i])
+                
                 elif self.model_type == 2: 
                     pdf = self.CrankNicolson(x_0 = time_series[i], y = self.y[i])
+                
+                elif self.model_type == 3: 
+                    pdf = self.CrankNicolson(x_0 = time_series[i], y = self.y[i], x_l= time_series[i-1])
 
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
                 cdf = cdf/cdf[-1]
                 # Draw a random uniform number
-                u = np.around(np.random.uniform(), decimals= 10)
-                # Interpolate the Function 
-                cdf_new = interpolate.interp1d(cdf, self.x, fill_value="extrapolate")
-                # Insert u 
-                time_series.append(np.around(cdf_new(u),2))
+                u = np.random.uniform()
+                # Take the inverse of the CDF
+                cdf_inv = cdf.T
+
+                # Search for the closest value in the CDF 
+                absolute_difference_function = lambda list_value : abs(list_value - u)
+                closest_value = min(list(cdf_inv), key=absolute_difference_function)
+                # Take the value from the CDF at the Position of the closest value
+                for x in range(len(cdf_inv)):
+                    if cdf_inv[x] == closest_value:
+                        next_value = self.x[x]
+                time_series.append(next_value)
+
+
+                # # Interpolate the Function 
+                # cdf_new = interpolate.interp1d(cdf, self.x, fill_value="extrapolate")
+                # # Insert u 
+                # time_series.append(float(cdf_new(u)))
         return time_series
     

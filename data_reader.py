@@ -7,9 +7,9 @@ import os.path
 
 class data_reader():
     
-    def __init__(self, time_period=None):
-        self.time_period = time_period
-    
+    def __init__(self, time_end=int, time_start= int):
+        self.time_start = time_start
+        self.time_end = time_end
     def zew(self):
         
         # Define the URL of the File
@@ -21,10 +21,7 @@ class data_reader():
         zew = pd.read_excel("ZEW_Sentiment.xls", sheet_name= "data", names = ["Date","ZEW Indicator of Economic Sentiment Germany, balances"])
         # Change to numpy array
         zew = zew.iloc[:,0].to_numpy()
-        if self.time_period == None:
-            zew = zew[:-1]    
-        else:      
-            zew = zew[0:self.time_period]
+        zew = zew[self.time_start:self.time_end]
         
         return zew
     
@@ -34,13 +31,10 @@ class data_reader():
         ip = fred.get_series('DEUPROINDMISMEI') 
         ip = ip.loc[start_period:].to_numpy()
 
-        if self.time_period == None:
-            ip = ip  
-        else:      
-            ip = ip[0:self.time_period]
+        ip = ip[self.time_start:self.time_end]
         
         if hp_filter == True: 
-            ip_cyle,_ = hpfilter(ip, 129600)
+            ip_cyle,_ = hpfilter(ip, 14400)
             return ip_cyle/100
         else: 
             return ip/100

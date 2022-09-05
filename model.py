@@ -72,7 +72,9 @@ class OpinionFormation():
         elif self.model_type == 2: 
             return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2 * y) - (x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 * y)))
         elif self.model_type == 3: 
-            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)))   
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l))) 
+        elif self.model_type == 4: 
+            return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)))    
         
 
     def diffusion(self, x: float, y = 0, x_l = 0) -> float:
@@ -85,13 +87,15 @@ class OpinionFormation():
         
         """
         if self.model_type == 0:
-            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x)))
+            return  (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 1: 
-            return   (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) 
+            return   (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) 
         elif self.model_type == 2: 
-            return  (2 * self.nu) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y)))
+            return  (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y)))
         elif self.model_type == 3: 
-            return 2 * self.nu*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3(x - x_l))) 
+            return (2 * self.nu/self.N)*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l))) 
+        elif self.model_type == 4: 
+            return (2 * self.nu/self.N)*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x  + self.alpha3*(x - x_l))) 
         
     # Define the functions for the initial distribution 
 
@@ -124,17 +128,16 @@ class OpinionFormation():
         
         for i in range(0,len(cdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt/self.N))))
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
             cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
             
         for i in range(0,len(pdf)):
             mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt/self.N))))
-            pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i])
-          
+            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
+            pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i])  
+        #pdf /=simps(pdf, self.x)
         for i  in range(0,len(pdf)-1):
             pdf_1[i] = (cdf[i+1]-cdf[i])/self.dx
-        pdf_1[0] = pdf_1[-1] = 0 
         return pdf_1
 
     # Define the functions for the solution of the partial differential equaution
@@ -156,9 +159,9 @@ class OpinionFormation():
         # Fixed Parametes and Vecotors 
         
         # For the first order derivative 
-        p_1 = self.dt/(8*self.dx)
+        p_1 = self.dt/(8.00*self.dx)
         # For the second order derivative
-        p_2 = self.dt/(2*(self.dx**2))
+        p_2 = self.dt/(2.0*(self.dx**2))
 
         # Initialize the Matrix for the solver 
         lhs = np.zeros([len(self.x), len(self.x)]) # LHS Matrix
@@ -166,16 +169,16 @@ class OpinionFormation():
         
         # Functions Inside the Fokker Planck Equation
         def g(x):
-            return  (1/(2*self.N)) * self.diffusion(x, y = y)
+            return  (1.0/(2.0)) * self.diffusion(x, y = y, x_l= x_l)
 
         def mu(x):
-            return  (-1) * self.drift(x, y = y )
+            return  (-1.0) * self.drift(x, y = y, x_l= x_l )
 
         # Fill the matrices
 
         for elem in range(len(self.prob)):
 
-            if elem == 1:
+            if elem == 0:
 
                 lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) +  p_2 * g(x = self.x[elem]))
                 lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
@@ -207,6 +210,10 @@ class OpinionFormation():
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
         elif self.model_type == 2:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
+        elif self.model_type == 3:
+            self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y, x_l= x_l))
+        elif self.model_type == 4:
+            self.prob[:,0] = np.abs(self.initialDistribution(x_0, x_l= x_l))
 
         rhs = coo_matrix(rhs).tocsr()
         lhs = coo_matrix(lhs).tocsr()
@@ -214,10 +221,9 @@ class OpinionFormation():
 
         if fast_comp == True: 
             for t in range(1,len(self.t)):
-                    self.prob[:,t][self.prob[:,t] < 0] = 0
-                    self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                    self.prob[:,t][self.prob[:,t] < 0] = 0
-                    self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
+
+                    self.prob[:,t] = spsolve(lhs, rhs @ self.prob[:,t-1])
+
             return self.prob[:,-1]
         else:
             
@@ -233,15 +239,14 @@ class OpinionFormation():
             if calc_dens == True:
                 area = np.zeros(len(self.t))
                 for t in range(1,len(self.t)): 
-                    area[t-1] = simps(self.prob[:,t-1], x = self.x)
+                    area[t-1] = simps(self.prob[:,t-1], x = self.x) 
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
-                       raise WrongDensityValueError(area[t-1], t-1)
+                        raise WrongDensityValueError(area[t-1], t-1)
                     else: 
-                        self.prob[:,t][self.prob[:,t] < 0] = 0
-                        self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                        self.prob[:,t][self.prob[:,t] < 0] = 0
-                        self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
-                            
+                        self.prob[:,t] = spsolve(lhs, rhs  @ self.prob[:,t-1])
+                        plt.plot(self.prob[:,t-1])
+
+                plt.show()            
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 
@@ -249,10 +254,6 @@ class OpinionFormation():
             else: 
                 for t in range(1,len(self.t)):
                         self.prob[:,t] = spsolve(lhs, rhs * self.prob[:,t-1])
-                        
-                        self.prob[:,t][self.prob[:,t] < 0] = 0
-                        self.prob[:,t] /= simps(self.prob[:,t], x = self.x)
-                        self.prob[0,t] = self.prob[-1,t] = 0
                 if converged == False:         
                     return self.prob, self.prob[:, -1]
                 else: 

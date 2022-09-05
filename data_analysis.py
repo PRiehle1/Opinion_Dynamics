@@ -3,7 +3,7 @@ import pandas as pd
 
 # # Data Set 1 
 
-data_set_1 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+data_set_1 = pd.read_csv(r"Estimation\sim_Data\exoN\estimates_model_0.csv")
 nu_1 = data_set_1.iloc[0:200,0]
 a0_1 = data_set_1.iloc[0:200,1]
 a1_1 = data_set_1.iloc[0:200,2]
@@ -16,10 +16,10 @@ print(a1_1.mean(), a1_1.var(), a1_1.std()/sqrt(len(nu_1)))
 
 # Data Set 2
 
-data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-nu_2 = data_set_1.iloc[201:401,0]
-a0_2 = data_set_1.iloc[201:401,1]
-a1_2 = data_set_1.iloc[201:401,2]
+#data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+nu_2 = data_set_1.iloc[201:403,0]
+a0_2 = data_set_1.iloc[201:403,1]
+a1_2 = data_set_1.iloc[201:403,2]
 
 print("\n Estimates Data Set 2 \n" )
 print(nu_2.mean(), nu_2.var(), nu_2.std()/sqrt(len(nu_2)))
@@ -28,10 +28,10 @@ print(a1_2.mean(), a1_2.var(), a1_2.std()/sqrt(len(nu_2)))
 
 # Data Set 3
 
-data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
-nu_3 = data_set_1.iloc[402:602,0]
-a0_3 = data_set_1.iloc[402:602,1]
-a1_3 = data_set_1.iloc[402:602,2]
+#data_set_2 = pd.read_csv(r"C:\Users\Guest\Desktop\Phillip\Opinion_Dynamics\Opinion_Dynamics\Estimation\sim_Data\exoN\estimates_model_0.csv")
+nu_3 = data_set_1.iloc[404:,0]
+a0_3 = data_set_1.iloc[404:,1]
+a1_3 = data_set_1.iloc[404:,2]
 
 print("\n Estimates Data Set 3 \n" )
 print(nu_3.mean(), nu_3.var(), nu_3.std()/sqrt(len(nu_1)))
