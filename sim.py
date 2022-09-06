@@ -1,10 +1,12 @@
 ''' Class for Simulating the social model'''
 # Import Packages
+from random import seed
 from model import OpinionFormation
 import numpy as np 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from scipy import interpolate
+import random 
 
 class Simulation(OpinionFormation):
 
@@ -70,7 +72,7 @@ class Simulation(OpinionFormation):
     
     def simulation(self, initial_value: float, sim_length:int):
         time_series = []
-
+        #np.random.seed(self.seed)
         for i in tqdm(range(sim_length)):
 
             if i == 0:
@@ -88,27 +90,14 @@ class Simulation(OpinionFormation):
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
-                cdf = cdf/cdf[-1]
+                cdf = cdf/cdf.max()
                 # Draw a random uniform number
                 u = np.random.uniform()
                 # Take the inverse of the CDF
-                cdf_inv = cdf.T
+                cdf_inv = interpolate.interp1d(cdf,self.x)
 
-                # Search for the closest value in the CDF 
-                absolute_difference_function = lambda list_value : abs(list_value - u)
-                closest_value = min(list(cdf_inv), key=absolute_difference_function)
-                # Take the value from the CDF at the Position of the closest value
-                for x in range(len(cdf_inv)):
-                    if cdf_inv[x] == closest_value:
-                        next_value = self.x[x]
-        
-                time_series.append(next_value)
-                
-                # # Interpolate the Function 
-                # cdf_new = interpolate.interp1d(cdf, self.x)
-                
-                # # Insert u 
-                # time_series.append(float(cdf_new(u)))
+                # Instert u
+                time_series.append(float(cdf_inv(u)))
             else:
                 # Calculate the PDF 
                 if self.model_type == 0:    
@@ -126,25 +115,12 @@ class Simulation(OpinionFormation):
                 # Calculate the CDF
                 cdf = np.cumsum(pdf)
                 # Norm the CDF
-                cdf = cdf/cdf[-1]
+                cdf = cdf/cdf.max()
                 # Draw a random uniform number
                 u = np.random.uniform()
                 # Take the inverse of the CDF
-                cdf_inv = cdf.T
-
-                # Search for the closest value in the CDF 
-                absolute_difference_function = lambda list_value : abs(list_value - u)
-                closest_value = min(list(cdf_inv), key=absolute_difference_function)
-                # Take the value from the CDF at the Position of the closest value
-                for x in range(len(cdf_inv)):
-                    if cdf_inv[x] == closest_value:
-                        next_value = self.x[x]
-                time_series.append(next_value)
-
-
-                # # Interpolate the Function 
-                # cdf_new = interpolate.interp1d(cdf, self.x, fill_value="extrapolate")
+                cdf_inv = interpolate.interp1d(cdf,self.x)
                 # # Insert u 
-                # time_series.append(float(cdf_new(u)))
+                time_series.append(float(cdf_inv(u)))
         return time_series
     

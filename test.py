@@ -1,3 +1,4 @@
+from time import time
 from model import OpinionFormation
 import plot 
 import sim
@@ -12,66 +13,66 @@ from scipy import interpolate, integrate
 from data_reader import data_reader
 from data_reader import data_reader
 
-data = data_reader(time_period=175)
+data = data_reader(time_start=0, time_end= -1)
 zew = data.zew()/100
 ip = data.industrial_production()
 # 2.444648422534771370e+01
 # 6.950835943959333962e-02,,,,,2.592376062826959870e+00
-# data = []
-# for _ in range(1):
-#     sim_2= sim.Simulation(N = 2.444648422534771370e+01, T =1 , nu = 6.950835943959333962e-02  , alpha0 = 1.882318755985127323e-01, alpha1 = 7.755864447728331168e-01 ,alpha2 = -9.332038647497629569e+00 ,alpha3 = 2.592376062826959870e+00, y =  ip, deltax = 0.01, deltat = 1/100, model_type =3, seed = 150)  
-#     sim_3= sim.Simulation(N = 50, T =1 , nu = 6, alpha0 = 0.2, alpha1 = 0.8 ,alpha2 = None ,alpha3 = None, y =  ip, deltax = 0.01, deltat = 1/100, model_type =0, seed = 150)  
-#     test_data_1 = sim_3.simulation(-0.9, sim_length = 200)
+data = []
+for _ in range(1):
+    sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/100, model_type =0, seed = 300)
+    sim_2 = sim.Simulation(N = 50, T = 1, nu =  3, alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.01, deltat = 1/100, model_type =0, seed = 300)
+    test_data_1 = sim_1.simulation(-0.6, sim_length = 200)
 
-#     test_data_2 = sim_2.simulation(-0.8, sim_length = 200)
-#     data.append(test_data_1)
-#     data.append(test_data_2)
-#     plt.plot(test_data_1, color = "black")
-#     plt.plot(test_data_2, color = "green")
+    test_data_2 = sim_2.simulation(-0.6, sim_length = 200)
+    data.append(test_data_1)
+    data.append(test_data_2)
+    plt.plot(test_data_1, color = "black")
+    plt.plot(test_data_2, color = "green")
     
-# plt.show()
+plt.show()
 # #######################################################################################################################################
 # #  Plot the transitional Density 
 # ############################################################
 # # ###########################################################################
-# x_0 = 0
+x_0 = 0.7
 
-# test = OpinionFormation(N = 50, T =1 , nu = 3, alpha0 = 0.2, alpha1 = .8,alpha2 = None,alpha3 = None,deltax= 0.002, deltat= 1/100, model_type= 0)    #
-# test_1 =OpinionFormation(N = 50, T =1, nu = 15, alpha0= 0.2, alpha1= .8, alpha2 = None,alpha3 = None, deltax= 0.002, deltat= 1/100, model_type= 0) 
-
-
-# area,prob,prob_end = test.CrankNicolson(x_0,  y = 1, calc_dens = True, converged= False,fast_comp = False)
-# plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
-# plot_0.surface_plot()
-
-# area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0, y= 1,calc_dens = True, converged= False, fast_comp = False)
-# plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
-# plot_1.surface_plot()
-
-# plot_2 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
-# plot_2.surface_plot()
-# plt.figure(figsize=(7, 6))
-# plt.plot(test.t,area, color='blue',
-#             label='Area Test 1')
-# plt.plot(test_1.t,area_1, color='red',
-#             label='Area Test 2')
-# plt.legend(loc='lower right')
-# plt.title("Area under the PDF")
-# plt.xlabel("Time")
-# plt.ylabel("Area")
-# plt.show()
+test = OpinionFormation(N = 50, T =1 , nu = 1, alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None,deltax= 0.02, deltat= 1/16, model_type= 0)    #
+test_1 =OpinionFormation(N = 50, T =1, nu = 8, alpha0= 0.08, alpha1= 1.2, alpha2 = None,alpha3 = None, deltax= 0.02, deltat= 1/16, model_type= 0) 
 
 
-# plt.figure(figsize=(7, 6))
-# plt.plot(test.x,prob_end, color='blue',
-#             label='PDF Test 1')
-# plt.plot(test_1.x,prob_end_1, color='red',
-#             label='PDF Test 2')
-# plt.legend(loc='lower right')
-# plt.title("Final PDF after T")
-# plt.xlabel("Time")
-# plt.ylabel("Density")
-# plt.show()
+area,prob,prob_end = test.CrankNicolson(x_0,  y = 1, calc_dens = True, converged= False,fast_comp = False)
+plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
+plot_0.surface_plot()
+
+area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0, y= 1,calc_dens = True, converged= False, fast_comp = False)
+plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+plot_1.surface_plot()
+
+plot_2 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+plot_2.surface_plot()
+plt.figure(figsize=(7, 6))
+plt.plot(test.t,area, color='blue',
+            label='Area Test 1')
+plt.plot(test_1.t,area_1, color='red',
+            label='Area Test 2')
+plt.legend(loc='lower right')
+plt.title("Area under the PDF")
+plt.xlabel("Time")
+plt.ylabel("Area")
+plt.show()
+
+
+plt.figure(figsize=(7, 6))
+plt.plot(test.x,prob_end, color='blue',
+            label='PDF Test 1')
+plt.plot(test_1.x,prob_end_1, color='red',
+            label='PDF Test 2')
+plt.legend(loc='lower right')
+plt.title("Final PDF after T")
+plt.xlabel("Time")
+plt.ylabel("Density")
+plt.show()
 
 
 # for x_0 in np.arange(-1,1.1,0.1):

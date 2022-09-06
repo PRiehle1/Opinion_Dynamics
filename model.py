@@ -221,9 +221,7 @@ class OpinionFormation():
 
         if fast_comp == True: 
             for t in range(1,len(self.t)):
-
                     self.prob[:,t] = spsolve(lhs, rhs @ self.prob[:,t-1])
-
             return self.prob[:,-1]
         else:
             

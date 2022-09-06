@@ -56,7 +56,7 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/175, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 50, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/50, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
@@ -65,8 +65,7 @@ class Estimation():
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 4: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
-        
-        
+    
         # Initialize the log(function(X, Theta))
         logf = []
         ######################################################################################################################################
@@ -147,7 +146,6 @@ class Estimation():
                 for x in range(len(mod.x)):
                     if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2):
                         if pdf[x] <= 0: 
-                            
                             pdf[x] = 0.0000000001
                             logf.append(np.log((pdf[x])))
                         else:
