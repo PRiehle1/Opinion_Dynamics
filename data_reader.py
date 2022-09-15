@@ -3,6 +3,7 @@ import wget
 from fredapi import Fred
 from statsmodels.tsa.filters.hp_filter import hpfilter
 import os.path
+import numpy as np
 
 
 class data_reader():
@@ -31,13 +32,13 @@ class data_reader():
         ip = fred.get_series('DEUPROINDMISMEI') 
         ip = ip.loc[start_period:].to_numpy()
 
-        ip = ip[self.time_start:self.time_end]
+        ip = np.log(ip[self.time_start:self.time_end])
         
         if hp_filter == True: 
             ip_cyle,_ = hpfilter(ip, 14400)
-            return ip_cyle/100
+            return ip_cyle
         else: 
-            return ip/100
+            return ip
         
         
         

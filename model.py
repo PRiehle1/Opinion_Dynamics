@@ -71,9 +71,9 @@ class OpinionFormation():
             return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x) - (x * np.cosh(self.alpha0 + self.alpha1*x)))
         elif self.model_type == 2: 
             return (2*self.nu) * (np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2 * y) - (x * np.cosh(self.alpha0 + self.alpha1*x + self.alpha2 * y)))
-        elif self.model_type == 3: 
+        elif self.model_type == 3 or self.model_type == 6: 
             return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l))) 
-        elif self.model_type == 4: 
+        elif self.model_type == 4 or self.model_type ==5: 
             return 2 * self.nu*(np.sinh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)) - x * np.cosh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)))    
         
 
@@ -92,9 +92,9 @@ class OpinionFormation():
             return   (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x) - (x * np.sinh(self.alpha0 + self.alpha1*x))) 
         elif self.model_type == 2: 
             return  (2 * self.nu/self.N) *(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y) - (x * np.sinh(self.alpha0 + self.alpha1*x + self.alpha2*y)))
-        elif self.model_type == 3: 
+        elif self.model_type == 3 or self.model_type == 6: 
             return (2 * self.nu/self.N)*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x + self.alpha2*y + self.alpha3*(x - x_l))) 
-        elif self.model_type == 4: 
+        elif self.model_type == 4 or self.model_type ==5: 
             return (2 * self.nu/self.N)*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x  + self.alpha3*(x - x_l))) 
         
     # Define the functions for the initial distribution 
@@ -210,9 +210,9 @@ class OpinionFormation():
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
         elif self.model_type == 2:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y))
-        elif self.model_type == 3:
+        elif self.model_type == 3 or self.model_type == 6:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, y = y, x_l= x_l))
-        elif self.model_type == 4:
+        elif self.model_type == 4 or self.model_type ==5:
             self.prob[:,0] = np.abs(self.initialDistribution(x_0, x_l= x_l))
 
         rhs = coo_matrix(rhs).tocsr()
