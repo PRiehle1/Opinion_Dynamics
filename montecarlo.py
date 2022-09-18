@@ -547,7 +547,7 @@ if __name__ == '__main__':
     numSim = 200
     sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (3,0.08,0.8)
+    init_guess = (1,0.08,0.8)
     for i in range(int(numSim/20)):
         jobs = []
         test_data_1 = []
@@ -569,7 +569,7 @@ if __name__ == '__main__':
     numSim = 200
     sim_3 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (3,0,1.2)
+    init_guess = (1,0,1.2)
     for i in range(int(numSim/20)):
         jobs = []
         test_data_3 = []
