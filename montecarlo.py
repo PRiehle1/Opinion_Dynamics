@@ -438,175 +438,175 @@ if __name__ == '__main__':
 ################################################################################################################################################
 #                                                    Simulated Data #Please change Number of agents in estimation.py line 59 to 50
 ################################################################################################################################################
-  #First Set of Data 
-    numSim = 200
-    sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
+#   #First Set of Data 
+#     numSim = 200
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (3,0,0.8)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_1 = []
-        mC_1 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
-            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (3,0,0.8)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_1 = []
+#         mC_1 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
-##########################################################################################
-    #Second Set of Data 
-    numSim = 200
-    sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
+#         for proc in jobs:
+#             proc.join()
+# ##########################################################################################
+#     #Second Set of Data 
+#     numSim = 200
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (3,0.08,0.8)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_1 = []
-        mC_1 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
-            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (3,0.08,0.8)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_1 = []
+#         mC_1 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
+#         for proc in jobs:
+#             proc.join()
 
-# # # #############################################################    
-    # # #Third Set of Data 
+# # # # #############################################################    
+#     # # #Third Set of Data 
 
-    numSim = 200
-    sim_3 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
+#     numSim = 200
+#     sim_3 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (3,0,1.2)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_3 = []
-        mC_3 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
-            mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (3,0,1.2)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_3 = []
+#         mC_3 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
+#             mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
-#################################################################################################################################################
-    # # # Fourth Set of Data 
+#         for proc in jobs:
+#             proc.join()
+# #################################################################################################################################################
+#     # # # Fourth Set of Data 
 
-    numSim = 200
-    sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
+#     numSim = 200
+#     sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
 
-    init_guess = (1,0.0,1.2)
-    for i in range(int(numSim/5)):
-        jobs = []
-        test_data_4 = []
-        mC_4 = []
-        for proc in range(5):
-            # Simulate the time series:      
-            test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
-            plt.plot(test_data_4[proc])
+#     init_guess = (1,0.0,1.2)
+#     for i in range(int(numSim/5)):
+#         jobs = []
+#         test_data_4 = []
+#         mC_4 = []
+#         for proc in range(5):
+#             # Simulate the time series:      
+#             test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
+#             plt.plot(test_data_4[proc])
             
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
-        plt.show()
-        for proc in jobs:
-            proc.join()
+#             mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
+#         plt.show()
+#         for proc in jobs:
+#             proc.join()
 
-  ##  5th Set of Data 
-    numSim = 200
-    sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
+#   ##  5th Set of Data 
+#     numSim = 200
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (1,0,0.8)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_1 = []
-        mC_1 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
-            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (1,0,0.8)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_1 = []
+#         mC_1 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
-##########################################################################################
-    #6th Set of Data 
-    numSim = 200
-    sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+#         for proc in jobs:
+#             proc.join()
+# ##########################################################################################
+#     #6th Set of Data 
+#     numSim = 200
+#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (1,0.08,0.8)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_1 = []
-        mC_1 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
-            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (1,0.08,0.8)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_1 = []
+#         mC_1 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
+#         for proc in jobs:
+#             proc.join()
 
-# # # #############################################################    
-    # # #7th Set of Data 
+# # # # #############################################################    
+#     # # #7th Set of Data 
 
-    numSim = 200
-    sim_3 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+#     numSim = 200
+#     sim_3 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
 
-    init_guess = (1,0,1.2)
-    for i in range(int(numSim/20)):
-        jobs = []
-        test_data_3 = []
-        mC_3 = []
-        for proc in range(20):
-            # Simulate the time series:      
-            test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
-            mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+#     init_guess = (1,0,1.2)
+#     for i in range(int(numSim/20)):
+#         jobs = []
+#         test_data_3 = []
+#         mC_3 = []
+#         for proc in range(20):
+#             # Simulate the time series:      
+#             test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
+#             mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
 
-        for proc in jobs:
-            proc.join()
-#################################################################################################################################################
-    # # # 8th Set of Data 
+#         for proc in jobs:
+#             proc.join()
+# #################################################################################################################################################
+#     # # # 8th Set of Data 
 
-    numSim = 200
-    sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
+#     numSim = 200
+#     sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
 
-    init_guess = (1,0.0,1.2)
-    for i in range(int(numSim/5)):
-        jobs = []
-        test_data_4 = []
-        mC_4 = []
-        for proc in range(5):
-            # Simulate the time series:      
-            test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
-            plt.plot(test_data_4[proc])
+#     init_guess = (1,0.0,1.2)
+#     for i in range(int(numSim/5)):
+#         jobs = []
+#         test_data_4 = []
+#         mC_4 = []
+#         for proc in range(5):
+#             # Simulate the time series:      
+#             test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
+#             plt.plot(test_data_4[proc])
             
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
-        plt.show()
-        for proc in jobs:
-            proc.join()
+#             mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
+#             p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+#             jobs.append(p)
+#             p.start()
+#         plt.show()
+#         for proc in jobs:
+#             proc.join()
 
 # ################################################################################################################################################
 # #                                                   Real Data 
@@ -926,15 +926,15 @@ if __name__ == '__main__':
 # ####################################################################
 # #      Time Periods (START:END) 
 # ####################################################################
-    # from data_reader import data_reader
+    from data_reader import data_reader
 
-    # data = data_reader(time_start= 0, time_end= -1)
-    # zew = data.zew()/100
-    # ip = data.industrial_production()
-    # # Account for smaller time Series
-    # zew = zew[0:len(ip)]
-    # zew_fw = zew[1:]
-    # numSim = 20
+    data = data_reader(time_start= 0, time_end= -1)
+    zew = data.zew()/100
+    ip = data.industrial_production()
+    # Account for smaller time Series
+    zew = zew[0:len(ip)]
+    zew_fw = zew[1:]
+    numSim = 20
 
     # from statsmodels.tsa.stattools import adfuller
 
@@ -1001,18 +1001,18 @@ if __name__ == '__main__':
 #########################################################
 # Model with industrial production and laged time series
 ########################################################
-    # init_guess = (0.12,0.09,0.99, 22, -4.5, 3)
-    # for i in range(int(numSim/20)):
-    #     jobs = []
-    #     mC_4 = []
-    #     for proc in range(1):
-    #         # Simulate the time series:      
-    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
-    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-    #         jobs.append(p)
-    #         p.start()
-    #     for proc in jobs:
-    #         proc.join()
+    init_guess = ( 0.03229717,  0.05432381,  0.28461138,  7.24074707, -6.5524558,   3.794075)
+    for i in range(int(numSim/20)):
+        jobs = []
+        mC_4 = []
+        for proc in range(1):
+            # Simulate the time series:      
+            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
+            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+        for proc in jobs:
+            proc.join()
 # ########################################################
 # # Model with laged time series
 # #########################################################

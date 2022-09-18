@@ -253,7 +253,7 @@ class OpinionFormation():
         if fast_comp == True: 
             area = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
-                self.prob[:,t-1]/=simps(self.prob[:,t-1] , self.x)
+                #self.prob[:,t-1]/=simps(self.prob[:,t-1] , self.x)
                 self.prob[:,t]  = spsolve(lhs, rhs @ (self.prob[:,t-1]))
             return self.prob[:,-1]
         else:
