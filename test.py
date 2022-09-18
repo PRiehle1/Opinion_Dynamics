@@ -13,7 +13,7 @@ from scipy import interpolate, integrate
 from data_reader import data_reader
 from data_reader import data_reader
 # # # #######################################################################################################################################
-# from data_reader import data_reader
+from data_reader import data_reader
 
 # data = data_reader(time_start= 0, time_end= -1)
 # zew = data.zew()/100
@@ -37,49 +37,51 @@ from data_reader import data_reader
 #     plt.plot(test_data_1, color = "black")
 #     #plt.plot(test_data_2, color = "green")
 # plt.plot(zew)   
-# plt.show()
+#plt.show()
 # # #######################################################################################################################################
 # # #  Plot the transitional Density 
 # # ############################################################
 # # # ###########################################################################
-# x_0 = 0
+x_0 = 0
 
-# test = OpinionFormation(N = 50, T =3 , nu = 3 , alpha0 = 0.01 , alpha1 = -1.2 ,alpha2 = None ,alpha3 =  None, deltax = 0.01, deltat = 1/16, model_type =0)    #
-# test_1 =OpinionFormation(N = 50, T =3 , nu = 3 , alpha0 = 0.01, alpha1 = 1.2 ,alpha2 = None ,alpha3 =  None, deltax = 0.01, deltat = 1/16, model_type =0) 
+test_1 = OpinionFormation(N = 50, T =1, nu = 1 , alpha0 = 0. , alpha1 = 1.2 ,alpha2 = None ,alpha3 =  None, deltax = 0.025, deltat = 1/100, model_type =0)    #
+test_2 =OpinionFormation(N = 50, T =1, nu = 3 , alpha0 = 0., alpha1 = 1.2 ,alpha2 = None ,alpha3 =  None, deltax = 0.025, deltat = 1/100, model_type =0) 
+test_3 = OpinionFormation(N = 50, T = 1 , nu = 2 , alpha0 = 0. , alpha1 = 1.2 ,alpha2 = None ,alpha3 =  None, deltax = 0.025, deltat = 1/100, model_type =0)    #
 
 
-# area,prob,prob_end = test.CrankNicolson(x_0 = zew_fw[0],  y = ip[0], x_l = zew[0],calc_dens = True, converged= False,fast_comp = False)
-# plot_0 = plot.Plotting3D(param = prob, x = test.x, t = test.t)
-# plot_0.surface_plot()
+area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = 0,  y = None, x_l = None ,calc_dens = True, converged= False, fast_comp = False)
+area_1, prob_2,prob_end_2 = test_2.CrankNicolson(x_0 = 0,  y = None, x_l = None ,calc_dens = True, converged= False, fast_comp = False)
+area_1, prob_3,prob_end_3 = test_3.CrankNicolson(x_0 = 0,  y = None, x_l = None ,calc_dens = True, converged= False, fast_comp = False)
 
-# area_1, prob_1,prob_end_1 = test_1.CrankNicolson(x_0 = zew_fw[0],  y = ip[0], x_l = zew[0],calc_dens = True, converged= False, fast_comp = False)
-# plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
-# plot_1.surface_plot()
+#print(np.round(np.divide(np.subtract(prob_end_3,prob_end_2),np.subtract(prob_end_2,prob_end_1)),2))
+
+#plot_1 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
+#plot_1.surface_plot()
 
 # plot_2 = plot.Plotting3D(param = prob_1, x = test_1.x, t = test_1.t)
 # plot_2.surface_plot()
-# plt.figure(figsize=(7, 6))
-# plt.plot(test.t,area, color='blue',
-#             label='Area Test 1')
-# plt.plot(test_1.t,area_1, color='red',
-#             label='Area Test 2')
-# plt.legend(loc='lower right')
-# plt.title("Area under the PDF")
-# plt.xlabel("Time")
-# plt.ylabel("Area")
-# plt.show()
+plt.figure(figsize=(7, 6))
+plt.plot(test_1.t,area_1, color='blue',
+            label='Area Test 1')
+plt.plot(test_1.t,area_1, color='red',
+            label='Area Test 2')
+plt.legend(loc='lower right')
+plt.title("Area under the PDF")
+plt.xlabel("Time")
+plt.ylabel("Area")
+plt.show()
 
 
-# plt.figure(figsize=(7, 6))
-# plt.plot(test.x,prob_end, color='blue',
-#             label='PDF Test 1')
-# plt.plot(test_1.x,prob_end_1, color='red',
-#             label='PDF Test 2')
-# plt.legend(loc='lower right')
-# plt.title("Final PDF after T")
-# plt.xlabel("Time")
-# plt.ylabel("Density")
-# plt.show()
+plt.figure(figsize=(7, 6))
+plt.plot(test_1.x,prob_end_1, color='blue',
+            label='PDF Test 1')
+plt.plot(test_2.x,prob_end_2, color='red',
+            label='PDF Test 2')
+plt.legend(loc='lower right')
+plt.title("Final PDF after T")
+plt.xlabel("Time")
+plt.ylabel("Density")
+plt.show()
 
 
 # # for x_0 in np.arange(-1,1.1,0.1):
@@ -156,16 +158,16 @@ from data_reader import data_reader
 # # # 	print('\t%s: %.3f' % (key, value))
 # 
 # 
-data_set_1 = pd.read_csv(r"Estimation\Model_3\estimates_rolling_window.csv")
-nu = data_set_1.iloc[:,0]
-alpha_0 = data_set_1.iloc[:,1]
-alpha_1 = data_set_1.iloc[:,2]
-N = data_set_1.iloc[:,3]
-alpha_2 = data_set_1.iloc[:,4]
-alpha_3 = data_set_1.iloc[:,5]
+# data_set_1 = pd.read_csv(r"Estimation\Model_3\estimates_rolling_window.csv")
+# nu = data_set_1.iloc[:,0]
+# alpha_0 = data_set_1.iloc[:,1]
+# alpha_1 = data_set_1.iloc[:,2]
+# N = data_set_1.iloc[:,3]
+# alpha_2 = data_set_1.iloc[:,4]
+# alpha_3 = data_set_1.iloc[:,5]
 
-data_set_2 = pd.read_csv(r"Estimation\real_statistics_rolling.csv")
-mean = data_set_2.iloc[:,0]
-std = data_set_2.iloc[:,1]
+# data_set_2 = pd.read_csv(r"Estimation\real_statistics_rolling.csv")
+# mean = data_set_2.iloc[:,0]
+# std = data_set_2.iloc[:,1]
 
-print("test")
+# print("test")
