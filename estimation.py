@@ -60,13 +60,13 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 50, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax = 0.01, deltat = 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N_guess, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 4: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 5:
@@ -152,7 +152,7 @@ class Estimation():
                 
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
-                    if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2):
+                    if np.around(mod.x[x], decimals= 2) == np.round(time_series[elem+1],2):
                         if pdf[x] <= 0: 
                             pdf[x] = 0.0000000001
                             logf.append(np.log((pdf[x])))
@@ -214,9 +214,9 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.0025, deltat= 1/100, model_type= self.model_type)
         elif self.model_type == 1: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.0025, deltat= 1/100, model_type= self.model_type)
         elif self.model_type == 2: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
@@ -258,7 +258,7 @@ class Estimation():
                 # Search for the Value of the PDF at X_k+1
                 for x in range(len(mod.x)):
                     if np.around(mod.x[x], decimals= 2) == np.around(time_series[elem+1],2):
-                        if pdf[x] == 0: 
+                        if pdf[x] <= 0: 
                             pdf[x] = 0.0000000001
                             logf = np.log((pdf[x]))
                         else:
@@ -285,9 +285,9 @@ class Estimation():
 
                 # The Model
                 if self.model_type == 0:
-                    mod_r = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+                    mod_r = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax= 0.0025, deltat= 1/100, model_type= self.model_type)
                 elif self.model_type == 1: 
-                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+                    mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.0025, deltat= 1/100, model_type= self.model_type)
                 elif self.model_type == 2: 
                     mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
                 elif self.model_type == 3: 
@@ -312,7 +312,7 @@ class Estimation():
                 # Search for the Value of the PDF at X_k+1
                 for x_r in range(len(mod_r.x)):
                     if np.around(mod_r.x[x_r], decimals= 2) == np.around(time_series[elem+1],2):
-                        if pdf_r[x_r] == 0: 
+                        if pdf_r[x_r] <= 0: 
                             pdf_r[x_r] = 0.0000000001
                             logf_r = np.log((pdf_r[x_r]))
                         else:
@@ -373,25 +373,25 @@ class Estimation():
         # Minimite the negative Log Likelihood Function 
         if self.model_type == 0:
             #exogenous N
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, None), (None, None), ( 0.1, None)], callback=None, options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1), method='L-BFGS-B', bounds = [(0.01, None), (None, None), ( 0.1, None)], callback=None)
         elif self.model_type == 1: 
             # endogenous N 
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None)],  callback=None)
         elif self.model_type == 2: 
             # endogenous N plus Industrial Production
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None), (None, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( 0.1, None), (2, None), (None, None)],  callback=None)
         elif self.model_type == 3: 
             # endogenous N plus Industrial Production plus Lagged Time Series
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (2, None), (None, None), (None, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha2, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (2, None), (None, None), (None, None)],  callback=None)
         elif self.model_type == 4: 
             # endogenous N plus Lagged Feedback
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (1, None), (None, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, N, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (1, None), (None, None)],  callback=None)
         elif self.model_type == 5: 
             # endogenous N plus Lagged Feedback with fixed alpha1 = 0
-            res = minimize(self.neglogL, (nu, alpha0, alpha1, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), ( None, None), (None, None), (None, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0, alpha1, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), ( None, None), (None, None), (None, None)],  callback=None)
         elif self.model_type == 6: 
             # endogenous N plus Industrial Production plus Lagged Time Series
-            res = minimize(self.neglogL, (nu, alpha0 , alpha1, alpha2, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (None, None), (None, None)],  callback=None,options={'gtol': 1e-04, 'eps': 1.4901161193847656e-05})
+            res = minimize(self.neglogL, (nu, alpha0 , alpha1, alpha2, alpha3), method='L-BFGS-B', bounds = [(0.001, 20), (None, None), ( None, None), (None, None), (None, None)],  callback=None)
         print('Exiting :', mp.current_process().name)
 
         print("Final Estimates found:  " + str(res.x) + "With Maximized Log Likelihood of:  " + str(res.fun))

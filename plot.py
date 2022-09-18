@@ -28,7 +28,7 @@ class Plotting3D(object):
             Plot: The Surface Plot
         """
 
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        fig, ax = plt.subplots(1,2,subplot_kw={"projection": "3d"})
         
         time, space = np.meshgrid(self.t, self.x)
         
@@ -36,12 +36,12 @@ class Plotting3D(object):
         surf = ax.plot_surface(time, space, self.param, 
                         linewidth=0, antialiased=False)
 
-        ax.set_xlabel("Time")
-        ax.set_zlabel("Probability Density")
-        ax.set_ylabel("x")
+        ax[0].set_xlabel("Time")
+        ax[0].set_zlabel("Probability Density")
+        ax[0].set_ylabel("x")
         
-        ax.view_init(20,120)
-
+        ax[0].view_init(10,40)
+        #plt.savefig('Figure_2.png', dpi=600)
         plt.show()
 
 class Plotting2D(object):

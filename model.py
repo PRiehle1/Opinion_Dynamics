@@ -39,8 +39,8 @@ class OpinionFormation():
         self.dt     = deltat 
         
         # Model Parameter to be generated
-        self.x      = np.arange(-1,1+self.dx,self.dx)
-        self.t      = np.arange(0,T+self.dt,self.dt, dtype= 'd')
+        self.x      = np.arange(-1,1+self.dx,self.dx, dtype = 'd')
+        self.t      = np.arange(0,T,self.dt, dtype= 'd')
         self.prob   = np.zeros([len(self.x), len(self.t)], dtype= 'd')
     
     # Helper Functions
@@ -122,23 +122,14 @@ class OpinionFormation():
         Returns:
             array: The values of the initial Probability at t=0 for every x
         """
-        cdf = np.zeros(len(self.prob))
+
         pdf = np.zeros(len(self.prob))
-        pdf_1 = np.zeros(len(self.prob))
-        
-        for i in range(0,len(cdf)):
-            mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
-            cdf[i] = self.normalDistributionCDF((self.x[i]-mean)/(sd*np.sqrt(2)))  
-            
+ 
         for i in range(0,len(pdf)):
-            mean = (x_initial + ((self.drift(x = self.x[i], y = y, x_l = x_l)) * self.dt))
-            sd = (np.sqrt(((self.diffusion(self.x[i], y = y, x_l = x_l)*self.dt))))
-            pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i])  
-        #pdf /=simps(pdf, self.x)
-        for i  in range(0,len(pdf)-1):
-            pdf_1[i] = (cdf[i+1]-cdf[i])/self.dx
-        return pdf_1
+            mean = ((x_initial + ((self.drift(x = x_initial, y = y, x_l = x_l)) * self.dt)))
+            sd =(np.sqrt(((self.diffusion(x_initial, y = y, x_l = x_l)*self.dt))))
+            pdf[i] = self.normalDistributionPDF(mean, sd, self.x[i]) 
+        return pdf 
 
     # Define the functions for the solution of the partial differential equaution
     def CrankNicolson(self, x_0:float, y = 0, x_l = 0, check_stability = False, calc_dens = False, converged =  True, fast_comp = True) -> np.array:
@@ -156,8 +147,11 @@ class OpinionFormation():
         Returns:
             np.array: The probability distribution at time t for every point in the domain x
         """
-        # Fixed Parametes and Vecotors 
-        
+
+        ########################################################
+        #                    Lux 2012 Scheme                   #         
+        ########################################################
+        #Fixed Parametes and Vecotors 
         # For the first order derivative 
         p_1 = self.dt/(8.00*self.dx)
         # For the second order derivative
@@ -175,34 +169,72 @@ class OpinionFormation():
             return  (-1.0) * self.drift(x, y = y, x_l= x_l )
 
         # Fill the matrices
-
+        x = self.x
         for elem in range(len(self.prob)):
 
             if elem == 0:
 
-                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) +  p_2 * g(x = self.x[elem]))
-                lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
+                lhs[elem, elem] = (1 - p_1*(mu(x[elem+1]) + mu(x[elem])) +  p_2 * g(x = x[elem]))
+                lhs[elem, elem+1] = (-p_1* (mu(x[elem+1]) + mu(x[elem])) - p_2*g(x = x[elem+1]))
 
-                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem+1]) + mu(self.x[elem])) - p_2 * g(x = self.x[elem]))
-                rhs[elem, elem+1] = (p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) + p_2*g(x = self.x[elem+1]))
+                rhs[elem, elem] = (1 + p_1*(mu(x[elem+1]) + mu(x[elem])) - p_2 * g(x = x[elem]))
+                rhs[elem, elem+1] = (p_1* (mu(x[elem+1]) + mu(x[elem])) + p_2*g(x = x[elem+1]))
 
             
             elif elem == len(self.x)-1:
-                lhs[elem,elem-1] = (p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
-                lhs[elem, elem] = (1 + p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) +  p_2 * g(x = self.x[elem]))
+                lhs[elem,elem-1] = (p_1 * (mu(x = x[elem]) + mu(x[elem-1])) - p_2 * g(x = x[elem-1]))
+                lhs[elem, elem] = (1 + p_1*(mu(x[elem]) + mu(x[elem-1])) +  p_2 * g(x = x[elem]))
 
-                rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
-                rhs[elem, elem] = (1 - p_1*(mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem]))
+                rhs[elem,elem-1] = (-p_1 * (mu(x = x[elem]) + mu(x[elem-1])) + p_2 * g(x = x[elem-1]))
+                rhs[elem, elem] = (1 - p_1*(mu(x[elem]) + mu(x[elem-1])) - p_2 * g(x = x[elem]))
                             
             else:                 
-                lhs[elem,elem-1] = (p_1 * (mu(self.x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
-                lhs[elem, elem] = (1 - p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) +  2* p_2 * g(x = self.x[elem]))
-                lhs[elem, elem+1] = (-p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
+                lhs[elem,elem-1] = (p_1 * (mu(x[elem]) + mu(self.x[elem-1])) - p_2 * g(x = self.x[elem-1]))
+                lhs[elem, elem] = (1 - p_1*(mu(x[elem+1]) - mu(self.x[elem-1])) +  2* p_2 * g(x = self.x[elem]))
+                lhs[elem, elem+1] = (-p_1* (mu(x[elem+1]) + mu(self.x[elem])) - p_2*g(x = self.x[elem+1]))
 
-                rhs[elem,elem-1] = (-p_1 * (mu(x = self.x[elem]) + mu(self.x[elem-1])) + p_2 * g(x = self.x[elem-1]))
-                rhs[elem, elem] = (1 + p_1*(mu(self.x[elem+1]) - mu(self.x[elem-1])) - 2 * p_2 * g(x = self.x[elem]))
-                rhs[elem, elem+1] = (p_1* (mu(self.x[elem+1]) + mu(self.x[elem])) + p_2*g(x = self.x[elem+1]))
-    
+                rhs[elem,elem-1] = (-p_1 * (mu(x[elem]) + mu(x[elem-1])) + p_2 * g(x = x[elem-1]))
+                rhs[elem, elem] = (1 + p_1*(mu(x[elem+1]) - mu(x[elem-1])) - 2 * p_2 * g(x = x[elem]))
+                rhs[elem, elem+1] = (p_1* (mu(x[elem+1]) + mu(x[elem])) + p_2*g(x = x[elem+1]))
+        
+        ##############################################################################
+        #                   Crank-Nicoloson as in Nicolas(2022)                      #
+        ##############################################################################
+        # # Functions Inside the Fokker Planck Equation
+        # def D(x):
+        #      return  self.diffusion(x, y = y, x_l= x_l)
+
+        # def A(x):
+        #      return  self.drift(x, y = y, x_l= x_l )
+        # x = self.x
+        # h = self.dx
+        # k = self.dt 
+
+        # for elem in range(len(self.x)):
+
+        #     if elem == 0:
+
+        #         lhs[elem, elem] = 4*(h**2) + 2*k * D(x[elem])
+        #         lhs[elem, elem+1] = k*h* A(x[elem+1]) - k* D(x[elem+1])
+
+        #         rhs[elem, elem] = 4*(h**2) - 2*k * D(x[elem])
+        #         rhs[elem, elem+1] = -k*h* A(x[elem+1]) + k* D(x[elem+1])
+            
+        #     elif elem == len(self.x)-1:
+        #         lhs[elem,elem-1] = -k * D(x[elem-1]) - k*h *A(x[elem-1])
+        #         lhs[elem, elem] = 4*(h**2) + 2*k * D(x[elem])
+
+        #         rhs[elem,elem-1] = +k * D(x[elem-1]) + k*h *A(x[elem-1])
+        #         rhs[elem, elem] = 4*(h**2) - 2*k * D(x[elem])
+        #     else:                 
+        #         lhs[elem,elem-1] = -k * D(x[elem-1]) - k*h *A(x[elem-1])
+        #         lhs[elem, elem] = 4*(h**2) + 2*k * D(x[elem])
+        #         lhs[elem, elem+1] = k*h* A(x[elem+1]) - k* D(x[elem+1])
+
+        #         rhs[elem,elem-1] = +k * D(x[elem-1]) + k*h *A(x[elem-1])
+        #         rhs[elem, elem] = 4*(h**2) - 2*k * D(x[elem])
+        #         rhs[elem, elem+1] = -k*h* A(x[elem+1]) + k* D(x[elem+1])
+                
         # Initial Distribution 
         if self.model_type == 0: 
             self.prob[:,0] = np.abs(self.initialDistribution(x_0))
@@ -218,10 +250,11 @@ class OpinionFormation():
         rhs = coo_matrix(rhs).tocsr()
         lhs = coo_matrix(lhs).tocsr()
 
-
         if fast_comp == True: 
+            area = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
-                    self.prob[:,t] = spsolve(lhs, rhs @ self.prob[:,t-1])
+                self.prob[:,t-1]/=simps(self.prob[:,t-1] , self.x)
+                self.prob[:,t]  = spsolve(lhs, rhs @ (self.prob[:,t-1]))
             return self.prob[:,-1]
         else:
             
@@ -241,10 +274,9 @@ class OpinionFormation():
                     if  area[t-1] <= 1 - 0.05 or area[t-1] >= 1 + 0.05:     
                         raise WrongDensityValueError(area[t-1], t-1)
                     else: 
-                        self.prob[:,t] = spsolve(lhs, rhs  @ self.prob[:,t-1])
-                        plt.plot(self.prob[:,t-1])
-
-                plt.show()            
+                        self.prob[:,t]  = spsolve(lhs, rhs @ self.prob[:,t-1])
+                        #plt.plot(self.prob[:,t-1])
+               # plt.show()            
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 
