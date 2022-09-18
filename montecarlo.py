@@ -257,77 +257,152 @@ class MonteCarlo():
 
             if self.estimation.model_type == 0:
                 if init_guess == [3,0,0.8]:
-                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set1.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1.csv", [0,0,0], delimiter=",")
-                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set1.csv", delimiter=',')    
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set1_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1_1.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set1_1.csv", delimiter=',')    
                     estim_array = np.vstack([estim_old, estim_array])
-                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1.csv", estim_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1_1.csv", estim_array, delimiter=",")
 
-                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set1.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1.csv", [0], delimiter=",")
-                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set1.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set1_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_1.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_1.csv", delimiter=',')
                     logL_array = np.append(logL, logL_array)
-                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1.csv", logL_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_1.csv", logL_array, delimiter=",")
                     
-                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set1.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1.csv", [0,0,0], delimiter=",")
-                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set1_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_1.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_1.csv", delimiter=',')
                     init_guess = np.vstack([in_est, np.block(list(init_guess))])
-                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1.csv", init_guess, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_1.csv", init_guess, delimiter=",")
                 elif init_guess == [3,0.08,0.8]:
-                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set2.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2.csv", [0,0,0], delimiter=",")
-                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set2.csv", delimiter=',')    
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set2_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2_1.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set2_1.csv", delimiter=',')    
                     estim_array = np.vstack([estim_old, estim_array])
-                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2.csv", estim_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2_1.csv", estim_array, delimiter=",")
 
-                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set2.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2.csv", [0], delimiter=",")
-                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set2.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set2_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_1.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_1.csv", delimiter=',')
                     logL_array = np.append(logL, logL_array)
-                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2.csv", logL_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_1.csv", logL_array, delimiter=",")
                     
-                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set2.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2.csv", [0,0,0], delimiter=",")
-                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set2_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_1.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_1.csv", delimiter=',')
                     init_guess = np.vstack([in_est, np.block(list(init_guess))])
-                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2.csv", init_guess, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_1.csv", init_guess, delimiter=",")
                 elif init_guess == [3,0,1.2]:
-                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set3.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3.csv", [0,0,0], delimiter=",")
-                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set3.csv", delimiter=',')    
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set3_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3_1.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set3_1.csv", delimiter=',')    
                     estim_array = np.vstack([estim_old, estim_array])
-                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3.csv", estim_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3_1.csv", estim_array, delimiter=",")
 
-                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set3.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3.csv", [0], delimiter=",")
-                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set3.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set3_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_1.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_1.csv", delimiter=',')
                     logL_array = np.append(logL, logL_array)
-                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3.csv", logL_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_1.csv", logL_array, delimiter=",")
                     
-                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set3.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3.csv", [0,0,0], delimiter=",")
-                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set3_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_1.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_1.csv", delimiter=',')
                     init_guess = np.vstack([in_est, np.block(list(init_guess))])
-                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3.csv", init_guess, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_1.csv", init_guess, delimiter=",")
                 elif init_guess == [3,0.08,1.2]:
-                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set4.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4.csv", [0,0,0], delimiter=",")
-                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set4.csv", delimiter=',')    
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set4_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4_1.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set4_1.csv", delimiter=',')    
                     estim_array = np.vstack([estim_old, estim_array])
-                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4.csv", estim_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4_1.csv", estim_array, delimiter=",")
 
-                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set4.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4.csv", [0], delimiter=",")
-                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set4.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set4_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_1.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_1.csv", delimiter=',')
                     logL_array = np.append(logL, logL_array)
-                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4.csv", logL_array, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_1.csv", logL_array, delimiter=",")
                     
-                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set4.csv") == False:
-                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4.csv", [0,0,0], delimiter=",")
-                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4.csv", delimiter=',')
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set4_1.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_1.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_1.csv", delimiter=',')
                     init_guess = np.vstack([in_est, np.block(list(init_guess))])
-                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4.csv", init_guess, delimiter=",")
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_1.csv", init_guess, delimiter=",")
+
+                if init_guess == [1,0,0.8]:
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set1_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1_2.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set1_2.csv", delimiter=',')    
+                    estim_array = np.vstack([estim_old, estim_array])
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set1_2.csv", estim_array, delimiter=",")
+
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set1_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_2.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_2.csv", delimiter=',')
+                    logL_array = np.append(logL, logL_array)
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set1_2.csv", logL_array, delimiter=",")
+                    
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set1_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_2.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_2.csv", delimiter=',')
+                    init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set1_2.csv", init_guess, delimiter=",")
+                elif init_guess == [1,0.08,0.8]:
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set2_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2_2.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set2_2.csv", delimiter=',')    
+                    estim_array = np.vstack([estim_old, estim_array])
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set2_2.csv", estim_array, delimiter=",")
+
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set2_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_2.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_2.csv", delimiter=',')
+                    logL_array = np.append(logL, logL_array)
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set2_2.csv", logL_array, delimiter=",")
+                    
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set2_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_2.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_2.csv", delimiter=',')
+                    init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set2_2.csv", init_guess, delimiter=",")
+                
+                elif init_guess == [1,0,1.2]:
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set3_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3_2.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set3_2.csv", delimiter=',')    
+                    estim_array = np.vstack([estim_old, estim_array])
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set3_2.csv", estim_array, delimiter=",")
+
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set3_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_2.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_2.csv", delimiter=',')
+                    logL_array = np.append(logL, logL_array)
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set3_2.csv", logL_array, delimiter=",")
+                    
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set3_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_2.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_2.csv", delimiter=',')
+                    init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set3_2.csv", init_guess, delimiter=",")
+                
+                elif init_guess == [1,0.08,1.2]:
+                    if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0_set4_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4_2.csv", [0,0,0], delimiter=",")
+                    estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model_0_set4_2.csv", delimiter=',')    
+                    estim_array = np.vstack([estim_old, estim_array])
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model_0_set4_2.csv", estim_array, delimiter=",")
+
+                    if os.path.exists("Estimation/sim_Data/exoN/logL_array_model_0_set4_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_2.csv", [0], delimiter=",")
+                    logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_2.csv", delimiter=',')
+                    logL_array = np.append(logL, logL_array)
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model_0_set4_2.csv", logL_array, delimiter=",")
+                    
+                    if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model_0_set4_2.csv") == False:
+                        np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_2.csv", [0,0,0], delimiter=",")
+                    in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_2.csv", delimiter=',')
+                    init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0_set4_2.csv", init_guess, delimiter=",")
 
                 else:
                     if os.path.exists("Estimation/sim_Data/exoN/estimates_model_0.csv") == False:
@@ -363,92 +438,175 @@ if __name__ == '__main__':
 ################################################################################################################################################
 #                                                    Simulated Data #Please change Number of agents in estimation.py line 59 to 50
 ################################################################################################################################################
-#   #First Set of Data 
-#     numSim = 200
-#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+  #First Set of Data 
+    numSim = 200
+    sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-#     init_guess = (3,0,0.8)
-#     for i in range(int(numSim/20)):
-#         jobs = []
-#         test_data_1 = []
-#         mC_1 = []
-#         for proc in range(20):
-#             # Simulate the time series:      
-#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 400))
-#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-#             jobs.append(p)
-#             p.start()
+    init_guess = (3,0,0.8)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_1 = []
+        mC_1 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
 
-#         for proc in jobs:
-#             proc.join()
-###########################################################################################
-    # #Second Set of Data 
-    # numSim = 200
-    # sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+        for proc in jobs:
+            proc.join()
+##########################################################################################
+    #Second Set of Data 
+    numSim = 200
+    sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-    # init_guess = (3,0.08,0.8)
-    # for i in range(int(numSim/20)):
-    #     jobs = []
-    #     test_data_1 = []
-    #     mC_1 = []
-    #     for proc in range(20):
-    #         # Simulate the time series:      
-    #         test_data_1.append(sim_1.simulation(-0.59, sim_length = 400))
-    #         mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-    #         p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-    #         jobs.append(p)
-    #         p.start()
+    init_guess = (3,0.08,0.8)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_1 = []
+        mC_1 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
 
-    #     for proc in jobs:
-    #         proc.join()
+        for proc in jobs:
+            proc.join()
 
-# # # # #############################################################    
-#     # # #Third Set of Data 
+# # # #############################################################    
+    # # #Third Set of Data 
 
-#     numSim = 200
-#     sim_3 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+    numSim = 200
+    sim_3 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-#     init_guess = (3,0,1.2)
-#     for i in range(int(numSim/20)):
-#         jobs = []
-#         test_data_3 = []
-#         mC_3 = []
-#         for proc in range(20):
-#             # Simulate the time series:      
-#             test_data_3.append(sim_3.simulation(-0.59, sim_length = 400))
-#             mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
-#             p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
-#             jobs.append(p)
-#             p.start()
+    init_guess = (3,0,1.2)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_3 = []
+        mC_3 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
+            mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
 
-#         for proc in jobs:
-#             proc.join()
-# #################################################################################################################################################
-#     # # # Fourth Set of Data 
+        for proc in jobs:
+            proc.join()
+#################################################################################################################################################
+    # # # Fourth Set of Data 
 
-    # numSim = 200
-    # sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
+    numSim = 200
+    sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
 
-    # init_guess = (1,0.0,1.2)
-    # for i in range(int(numSim/5)):
-    #     jobs = []
-    #     test_data_4 = []
-    #     mC_4 = []
-    #     for proc in range(5):
-    #         # Simulate the time series:      
-    #         test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
-    #         plt.plot(test_data_4[proc])
+    init_guess = (1,0.0,1.2)
+    for i in range(int(numSim/5)):
+        jobs = []
+        test_data_4 = []
+        mC_4 = []
+        for proc in range(5):
+            # Simulate the time series:      
+            test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
+            plt.plot(test_data_4[proc])
             
-    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
-    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-    #         jobs.append(p)
-    #         p.start()
-    #     plt.show()
-    #     for proc in jobs:
-    #         proc.join()
+            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+        plt.show()
+        for proc in jobs:
+            proc.join()
 
+  ##  5th Set of Data 
+    numSim = 200
+    sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
+    init_guess = (1,0,0.8)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_1 = []
+        mC_1 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+
+        for proc in jobs:
+            proc.join()
+##########################################################################################
+    #6th Set of Data 
+    numSim = 200
+    sim_1 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+
+    init_guess = (3,0.08,0.8)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_1 = []
+        mC_1 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+            mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+
+        for proc in jobs:
+            proc.join()
+
+# # # #############################################################    
+    # # #7th Set of Data 
+
+    numSim = 200
+    sim_3 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.02, deltat = 1/100, model_type =0, seed = 3)  
+
+    init_guess = (3,0,1.2)
+    for i in range(int(numSim/20)):
+        jobs = []
+        test_data_3 = []
+        mC_3 = []
+        for proc in range(20):
+            # Simulate the time series:      
+            test_data_3.append(sim_3.simulation(-0.59, sim_length = 200))
+            mC_3.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_3[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_3[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+
+        for proc in jobs:
+            proc.join()
+#################################################################################################################################################
+    # # # 8th Set of Data 
+
+    numSim = 200
+    sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
+
+    init_guess = (1,0.0,1.2)
+    for i in range(int(numSim/5)):
+        jobs = []
+        test_data_4 = []
+        mC_4 = []
+        for proc in range(5):
+            # Simulate the time series:      
+            test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
+            plt.plot(test_data_4[proc])
+            
+            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
+            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+            jobs.append(p)
+            p.start()
+        plt.show()
+        for proc in jobs:
+            proc.join()
 
 # ################################################################################################################################################
 # #                                                   Real Data 
@@ -457,23 +615,23 @@ if __name__ == '__main__':
 ####################################################################
 #       First 175 Time Periods (identical to Lux)
 ####################################################################
-    from data_reader import data_reader
+    # from data_reader import data_reader
 
-    data = data_reader(time_start= 0, time_end= 175)
-    zew = data.zew()/100
-    zew_fw = zew[1:]
-    ip = data.industrial_production()
-    numSim = 20
+    # data = data_reader(time_start= 0, time_end= 175)
+    # zew = data.zew()/100
+    # zew_fw = zew[1:]
+    # ip = data.industrial_production()
+    # numSim = 20
     
     
-    from statsmodels.tsa.stattools import adfuller
+    # from statsmodels.tsa.stattools import adfuller
 
-    result = adfuller(ip)
-    print('ADF Statistic: %f' % result[0])
-    print('p-value: %f' % result[1])
-    print('Critical Values:')
-    for key, value in result[4].items():
-        print('\t%s: %.3f' % (key, value))
+    # result = adfuller(ip)
+    # print('ADF Statistic: %f' % result[0])
+    # print('p-value: %f' % result[1])
+    # print('Critical Values:')
+    # for key, value in result[4].items():
+    #     print('\t%s: %.3f' % (key, value))
    
 ##########################################
 #Model with exogenous N
@@ -540,19 +698,19 @@ if __name__ == '__main__':
 # # Model with industrial production and laged time series
 # ########################################################
 
-    init_guess = (9.047996351698969764e-02,1.495954758529130790e-01,8.745193519211922339e-01,3.187844863450407118e+01,-5.184832000945729824e+00,2.125734982220825575e+00)
-    for i in range(int(numSim/20)):
-        jobs = []
-        mC_4 = []
-        for proc in range(1):
-            # Simulate the time series:      
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+    # init_guess = (9.047996351698969764e-02,1.495954758529130790e-01,8.745193519211922339e-01,3.187844863450407118e+01,-5.184832000945729824e+00,2.125734982220825575e+00)
+    # for i in range(int(numSim/20)):
+    #     jobs = []
+    #     mC_4 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
+    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
 
-        for proc in jobs:
-            proc.join()
+    #     for proc in jobs:
+    #         proc.join()
 
     
 # ########################################################
@@ -612,15 +770,15 @@ if __name__ == '__main__':
 # ####################################################################
 # #      Time Periods (176:END) 
 # ####################################################################
-    from data_reader import data_reader
+    # from data_reader import data_reader
 
-    data = data_reader(time_start= 176, time_end= -1)
-    zew = data.zew()/100
-    ip = data.industrial_production()
-    # Account for smaller time Series
-    zew = zew[0:len(ip)]
-    zew_fw = zew[1:]
-    numSim = 20
+    # data = data_reader(time_start= 176, time_end= -1)
+    # zew = data.zew()/100
+    # ip = data.industrial_production()
+    # # Account for smaller time Series
+    # zew = zew[0:len(ip)]
+    # zew_fw = zew[1:]
+    # numSim = 20
 
 #     # from statsmodels.tsa.stattools import adfuller
 
@@ -696,19 +854,19 @@ if __name__ == '__main__':
 # # # Model with industrial production and laged time series
 # # ########################################################
 
-    init_guess = (1.493466698593123171e-02,-6.493910351455471630e-02,-7.471621546742781561e-01,3.027093689498677076e+00,-9.957757769642693546e+00,4.172092832848550259e+00)
-    for i in range(int(numSim/20)):
-        jobs = []
-        mC_4 = []
-        for proc in range(1):
-            # Simulate the time series:      
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
+    # init_guess = (1.493466698593123171e-02,-6.493910351455471630e-02,-7.471621546742781561e-01,3.027093689498677076e+00,-9.957757769642693546e+00,4.172092832848550259e+00)
+    # for i in range(int(numSim/20)):
+    #     jobs = []
+    #     mC_4 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
+    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
 
-        for proc in jobs:
-            proc.join()
+    #     for proc in jobs:
+    #         proc.join()
 
     
 # ########################################################
@@ -768,24 +926,24 @@ if __name__ == '__main__':
 # ####################################################################
 # #      Time Periods (START:END) 
 # ####################################################################
-    from data_reader import data_reader
+    # from data_reader import data_reader
 
-    data = data_reader(time_start= 0, time_end= -1)
-    zew = data.zew()/100
-    ip = data.industrial_production()
-    # Account for smaller time Series
-    zew = zew[0:len(ip)]
-    zew_fw = zew[1:]
-    numSim = 20
+    # data = data_reader(time_start= 0, time_end= -1)
+    # zew = data.zew()/100
+    # ip = data.industrial_production()
+    # # Account for smaller time Series
+    # zew = zew[0:len(ip)]
+    # zew_fw = zew[1:]
+    # numSim = 20
 
-    from statsmodels.tsa.stattools import adfuller
+    # from statsmodels.tsa.stattools import adfuller
 
-    result = adfuller(ip)
-    print('ADF Statistic: %f' % result[0])
-    print('p-value: %f' % result[1])
-    print('Critical Values:')
-    for key, value in result[4].items():
-        print('\t%s: %.3f' % (key, value))
+    # result = adfuller(ip)
+    # print('ADF Statistic: %f' % result[0])
+    # print('p-value: %f' % result[1])
+    # print('Critical Values:')
+    # for key, value in result[4].items():
+    #     print('\t%s: %.3f' % (key, value))
    
 ##########################################
 #Model with exogenous N
@@ -843,18 +1001,18 @@ if __name__ == '__main__':
 #########################################################
 # Model with industrial production and laged time series
 ########################################################
-    init_guess = (0.12,0.09,0.99, 22, -4.5, 3)
-    for i in range(int(numSim/20)):
-        jobs = []
-        mC_4 = []
-        for proc in range(1):
-            # Simulate the time series:      
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
-        for proc in jobs:
-            proc.join()
+    # init_guess = (0.12,0.09,0.99, 22, -4.5, 3)
+    # for i in range(int(numSim/20)):
+    #     jobs = []
+    #     mC_4 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
+    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
+    #     for proc in jobs:
+    #         proc.join()
 # ########################################################
 # # Model with laged time series
 # #########################################################
