@@ -60,106 +60,45 @@ class Estimation():
 
         # The Model
         if self.model_type == 0:
-            mod = OpinionFormation(N = 50, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax = 0.01, deltat = 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = 175, T = 1 , nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None, alpha3 = None, deltax = 0.01, deltat = 1/16, model_type= self.model_type)
         elif self.model_type == 1: 
             mod = OpinionFormation(N = N_guess, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 2: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = None, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 3: 
-            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 1/100, deltat= 1/16, model_type= self.model_type)
+            mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 4: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
         elif self.model_type == 5:
-            mod = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)            
+            mod = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)            
         elif self.model_type == 6: 
-            mod = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type) 
+            mod = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type) 
         
         # Initialize the log(function(X, Theta))
         logf = []
-        ######################################################################################################################################
-        if self.multiprocess == True:
-            pass
-        #     start = time.time()
-        #     # Time Series to List
-        #     time_series_list = list(time_series)
-        #     # Multiprocessing 
-        #     pool = mp.Pool(2)         
-        #     # Calculate the PDF for all values in the Time Series
-        #     if self.model_type == 0 or self.model_type == 1:
-        #         for _ in range(10):
-        #             pdf = list(pool.starmap(mod.CrankNicolson, zip(time_series_list)))
-        #             # Check if the area under the PDF equals one if not adapt the grid size in time and space 
-        #             pdf = np.array(pdf)
-        #             dummy_1 = mod.dt
-        #             for elem in range(len(pdf)-1):
-        #                 area = simps(pdf[elem,:], x = mod.x)
-        #                 if area > 1 + 0.03 or area < 1- 0.03:
-        #                     dt_new = dummy_1/2
-        #                     print("The grid size is expanded to dt = " + str(dt_new))
-        #                     mod = OpinionFormation(N = 175, T = 2, nu = nu_guess, alpha0= alpha0_guess , alpha1= alpha1_guess, alpha2 = None,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
-        #                     pdf = []
-        #                     break
-        #             if mod.dt == dummy_1:
-        #                 break
-        #     elif self.model_type == 2: 
-        #         # y to List
-        #         y_list = list(y)
-        #         for _ in range(10):
-        #             pdf = list(pool.starmap(mod.CrankNicolson, zip(tuple(time_series_list), tuple(y_list))))
-        #             # Check if the area under the PDF equals one if not adapt the grid size in time 
-        #             pdf = np.array(pdf)
-        #             dummy_1 = mod.dt
-        #             for elem in range(len(pdf)-1):
-        #                 area = simps(pdf[elem,:], x = mod.x)
-        #                 if area > 1 + 0.03 or area < 1- 0.03:
-        #                     dt_new = dummy_1/2
-        #                     print("The grid size is expanded to dt = " + str(dt_new))
-        #                     mod = OpinionFormation(N = N, T = 1.6, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2,alpha3 = None, deltax= mod.dx, deltat= dt_new, model_type= self.model_type)
-        #                     pdf = []
-        #                     break
-        #             if mod.dt == dummy_1:
-        #                 break         
-        #     elif self.model_type == 3: 
-        #         # y to List
-        #         y_list = list(y)
-        #         # Lagged x to list 
-        #         x_l_list = list(x_l)
-        #         pdf = list(tqdm(pool.imap(mod.CrankNicolson, time_series_list, y_list, x_l_list)))
-        #     pool.close()  
-
-        #     # Search for the Value of the PDF at X_k+1
-        #     for elem in range(len(pdf)-1):
-        #         # Interpolate the PDF
-        #         pdf_new = interpolate.interp1d(mod.x,pdf[elem])
-        #         # Store the Likelihood Value
-        #         logf.append(np.log(pdf_new(time_series[elem+1])))
-
-
-        ################################################################################################################################################
-        else:   
-            import matplotlib.pyplot as plt 
-            start = time.time()
-            for elem in range(len(time_series)-1):
-                #Solve the Fokker Plank Equation: 
-                if self.model_type == 0 or self.model_type == 1:
-                    pdf = mod.CrankNicolson(x_0 = time_series[elem])
-                elif self.model_type == 2: 
-                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem])
-                elif self.model_type == 3 or self.model_type == 6: 
-                    pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
-                elif self.model_type == 4 or self.model_type == 5: 
-                    pdf = mod.CrankNicolson(x_0 = time_series[elem], x_l = x_l[elem])
-                
-                # Search for the Value of the PDF at X_k+1
-                for x in range(len(mod.x)):
-                    if np.around(mod.x[x], decimals= 2) == np.round(time_series[elem+1],2):
-                        if pdf[x] <= 0: 
-                            pdf[x] = 0.0000000001
-                            logf.append(np.log((pdf[x])))
-                        else:
-                            if pdf[x] == 0:
-                                print("PDF at x is zero")
-                            logf.append(np.log((pdf[x])))
+        #####################################################################################################################################
+        start = time.time()
+        for elem in range(len(time_series)-1):
+            #Solve the Fokker Plank Equation: 
+            if self.model_type == 0 or self.model_type == 1:
+                pdf = mod.CrankNicolson(x_0 = time_series[elem])
+            elif self.model_type == 2: 
+                pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem])
+            elif self.model_type == 3 or self.model_type == 6: 
+                pdf = mod.CrankNicolson(x_0 = time_series[elem], y = y[elem], x_l = x_l[elem])
+            elif self.model_type == 4 or self.model_type == 5: 
+                pdf = mod.CrankNicolson(x_0 = time_series[elem], x_l = x_l[elem])
+            
+            # Search for the Value of the PDF at X_k+1
+            for x in range(len(mod.x)):
+                if np.around(mod.x[x], decimals= 2) == np.round(time_series[elem+1],2):
+                    if pdf[x] <= 0: 
+                        pdf[x] = 0.0000000001
+                        logf.append(np.log((pdf[x])))
+                    else:
+                        if pdf[x] == 0:
+                            print("PDF at x is zero")
+                        logf.append(np.log((pdf[x])))
 
 
 #########################################################################################################################################################           
@@ -224,9 +163,9 @@ class Estimation():
         elif self.model_type == 4: 
             mod = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
         elif self.model_type == 5:
-            mod = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
+            mod = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
         elif self.model_type == 6: 
-            mod = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type) 
+            mod = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type) 
 
         # Initialize the log(function(X, Theta))
         logf = []
@@ -295,9 +234,9 @@ class Estimation():
                 elif self.model_type == 4: 
                     mod_r = OpinionFormation(N = N, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)        
                 elif self.model_type == 5: 
-                    mod_r = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)                        
+                    mod_r = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = None, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)                        
                 elif self.model_type == 6: 
-                    mod_r = OpinionFormation(N = 22, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
+                    mod_r = OpinionFormation(N = 20, T = 1, nu = nu, alpha0= alpha0 , alpha1= alpha1, alpha2 = alpha2, alpha3 = alpha3, deltax= 0.01, deltat= 1/16, model_type= self.model_type)
                 
                 #Solve the Fokker Plank Equation: 
                 if self.model_type == 0 or self.model_type == 1:

@@ -16,7 +16,7 @@ class MonteCarlo():
   
 
     def estim(self, init_guess) -> np.array:
-        #### Solver Nelder Mead
+
         init_guess = list(init_guess)
         for elem in range(len(init_guess)):
              if elem == 1:
@@ -421,7 +421,25 @@ class MonteCarlo():
                         np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", [0,0,0], delimiter=",")
                     in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", delimiter=',')
                     init_guess = np.vstack([in_est, np.block(list(init_guess))])
-                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", init_guess, delimiter=",")                   
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model_0.csv", init_guess, delimiter=",")
+            else: 
+                if os.path.exists("Estimation/sim_Data/exoN/estimates_model.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/estimates_model.csv", [0,0,0,0], delimiter=",")
+                estim_old =np.genfromtxt("Estimation/sim_Data/exoN/estimates_model.csv", delimiter=',')    
+                estim_array = np.vstack([estim_old, estim_array])
+                np.savetxt("Estimation/sim_Data/exoN/estimates_model.csv", estim_array, delimiter=",")
+
+                if os.path.exists("Estimation/sim_Data/exoN/logL_array_model.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/logL_array_model.csv", [0], delimiter=",")
+                logL =np.genfromtxt("Estimation/sim_Data/exoN/logL_array_model.csv", delimiter=',')
+                logL_array = np.append(logL, logL_array)
+                np.savetxt("Estimation/sim_Data/exoN/logL_array_model.csv", logL_array, delimiter=",")
+                
+                if os.path.exists("Estimation/sim_Data/exoN/initial_estim_model.csv") == False:
+                    np.savetxt("Estimation/sim_Data/exoN/initial_estim_model.csv", [0,0,0,0], delimiter=",")
+                in_est =np.genfromtxt("Estimation/sim_Data/exoN/initial_estim_model.csv", delimiter=',')
+                init_guess = np.vstack([in_est, np.block(list(init_guess))])
+                np.savetxt("Estimation/sim_Data/exoN/initial_estim_model.csv", init_guess, delimiter=",")                  
     def run(self, init_guess) -> np.array:
 
         self.estim(tuple(init_guess))
@@ -438,25 +456,25 @@ if __name__ == '__main__':
 ################################################################################################################################################
 #                                                    Simulated Data #Please change Number of agents in estimation.py line 59 to 50
 ################################################################################################################################################
-#   #First Set of Data 
-#     numSim = 200
-#     sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
+  #First Set of Data 
+    # numSim = 200
+    # sim_1 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0, alpha1 = 0.8,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = 3)  
 
-#     init_guess = (3,0,0.8)
-#     for i in range(int(numSim/20)):
-#         jobs = []
-#         test_data_1 = []
-#         mC_1 = []
-#         for proc in range(20):
-#             # Simulate the time series:      
-#             test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
-#             mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
-#             p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
-#             jobs.append(p)
-#             p.start()
+    # init_guess = (3,0,0.8)
+    # for i in range(int(numSim/1)):
+    #     jobs = []
+    #     test_data_1 = []
+    #     mC_1 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         test_data_1.append(sim_1.simulation(-0.59, sim_length = 200))
+    #         mC_1.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_1[proc],multiprocess= False,model_type=0), real_data= False))
+    #         p = mp.Process(target=mC_1[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
 
-#         for proc in jobs:
-#             proc.join()
+    #     for proc in jobs:
+    #         proc.join()
 # ##########################################################################################
 #     #Second Set of Data 
 #     numSim = 200
@@ -502,26 +520,26 @@ if __name__ == '__main__':
 # #################################################################################################################################################
 #     # # # Fourth Set of Data 
 
-#     numSim = 200
-#     sim_4 = sim.Simulation(N = 50, T = 1, nu = 1 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
+    # numSim = 200
+    # sim_4 = sim.Simulation(N = 50, T = 1, nu = 3 , alpha0 = 0.08, alpha1 = 1.2,alpha2 = None,alpha3 = None, y = None, deltax = 0.0025, deltat = 1/100, model_type =0, seed = np.random.randint(0,300))  
 
-#     init_guess = (1,0.0,1.2)
-#     for i in range(int(numSim/5)):
-#         jobs = []
-#         test_data_4 = []
-#         mC_4 = []
-#         for proc in range(5):
-#             # Simulate the time series:      
-#             test_data_4.append(sim_4.simulation(-0.59, sim_length = 200))
-#             plt.plot(test_data_4[proc])
+    # init_guess = (3,0.0,1.2)
+    # for i in range(int(numSim/1)):
+    #     jobs = []
+    #     test_data_4 = []
+    #     mC_4 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         test_data_4.append(sim_4.simulation(0, sim_length = 200))
+    #         plt.plot(test_data_4[proc])
             
-#             mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=0), real_data= False))
-#             p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-#             jobs.append(p)
-#             p.start()
-#         plt.show()
-#         for proc in jobs:
-#             proc.join()
+    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(test_data_4[proc],multiprocess= False,model_type=1), real_data= False))
+    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
+    #     plt.show()
+    #     for proc in jobs:
+    #         proc.join()
 
 #   ##  5th Set of Data 
 #     numSim = 200
@@ -615,23 +633,23 @@ if __name__ == '__main__':
 ####################################################################
 #       First 175 Time Periods (identical to Lux)
 ####################################################################
-    # from data_reader import data_reader
+    from data_reader import data_reader
 
-    # data = data_reader(time_start= 0, time_end= 175)
-    # zew = data.zew()/100
-    # zew_fw = zew[1:]
-    # ip = data.industrial_production()
-    # numSim = 20
+    data = data_reader(time_start= 0, time_end= 175)
+    zew = data.zew()/100
+    zew_fw = zew[1:]
+    ip = data.industrial_production()
+    numSim = 20
     
     
-    # from statsmodels.tsa.stattools import adfuller
+    from statsmodels.tsa.stattools import adfuller
 
-    # result = adfuller(ip)
-    # print('ADF Statistic: %f' % result[0])
-    # print('p-value: %f' % result[1])
-    # print('Critical Values:')
-    # for key, value in result[4].items():
-    #     print('\t%s: %.3f' % (key, value))
+    result = adfuller(ip)
+    print('ADF Statistic: %f' % result[0])
+    print('p-value: %f' % result[1])
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t%s: %.3f' % (key, value))
    
 ##########################################
 #Model with exogenous N
@@ -732,7 +750,7 @@ if __name__ == '__main__':
     #         proc.join()
 
 # ########################################################
-# # Model with laged time series and N = 22
+# # Model with laged time series and N = 20
 # #########################################################
 
     # init_guess = (6.481269069841348596e-02,1.954777342680067975e-01,7.704788094116641339e-01,2.993329386808641690e+00)
@@ -750,7 +768,7 @@ if __name__ == '__main__':
     #         proc.join()
 
 #########################################################
-# Model with industrial production and laged time series and N =22
+# Model with industrial production and laged time series and N =20
 ########################################################
 
     # init_guess = (6.331940450689063637e-02,2.026316488839882413e-01,7.396393454904490738e-01,-7.328853008299797800e+00,2.764240234051995593e+00)
@@ -770,15 +788,15 @@ if __name__ == '__main__':
 # ####################################################################
 # #      Time Periods (176:END) 
 # ####################################################################
-    # from data_reader import data_reader
+    from data_reader import data_reader
 
-    # data = data_reader(time_start= 176, time_end= -1)
-    # zew = data.zew()/100
-    # ip = data.industrial_production()
-    # # Account for smaller time Series
-    # zew = zew[0:len(ip)]
-    # zew_fw = zew[1:]
-    # numSim = 20
+    data = data_reader(time_start= 176, time_end= 364)
+    zew = data.zew()/100
+    ip = data.industrial_production()
+    # Account for smaller time Series
+    zew = zew[0:len(ip)]
+    zew_fw = zew[1:]
+    numSim = 20
 
 #     # from statsmodels.tsa.stattools import adfuller
 
@@ -854,8 +872,9 @@ if __name__ == '__main__':
 # # # Model with industrial production and laged time series
 # # ########################################################
 
-    # init_guess = (1.493466698593123171e-02,-6.493910351455471630e-02,-7.471621546742781561e-01,3.027093689498677076e+00,-9.957757769642693546e+00,4.172092832848550259e+00)
-    # for i in range(int(numSim/20)):
+
+    # init_guess = (1.670649116368989190e-02,-1.046296954418928365e-01,0,8.372362793503125733e+00,-1.000910344445289901e+01,4.464152674741839633e+00)
+    # for i in range(int(numSim/1)):
     #     jobs = []
     #     mC_4 = []
     #     for proc in range(1):
@@ -887,7 +906,7 @@ if __name__ == '__main__':
     #     for proc in jobs:
     #         proc.join()
 # ########################################################
-# # Model with laged time series and N = 22
+# # Model with laged time series and N = 20
 # #########################################################
 
     # init_guess = (1.687044347992531501e-01,4.437435164575289498e-02,8.081715128334789888e-01,6.943424950364560644e-01)
@@ -905,7 +924,7 @@ if __name__ == '__main__':
     #         proc.join()
 
 #########################################################
-# Model with industrial production and laged time series and N =22
+# Model with industrial production and laged time series and N =20
 ########################################################
 
     # init_guess = (1.758980936653743443e-01,5.425385194302516367e-02,6.907932872040989380e-01,-1.955077894801849236e+00,5.575924232595009800e-01)
@@ -926,15 +945,15 @@ if __name__ == '__main__':
 # ####################################################################
 # #      Time Periods (START:END) 
 # ####################################################################
-    from data_reader import data_reader
+    # from data_reader import data_reader
 
-    data = data_reader(time_start= 0, time_end= -1)
-    zew = data.zew()/100
-    ip = data.industrial_production()
-    # Account for smaller time Series
-    zew = zew[0:len(ip)]
-    zew_fw = zew[1:]
-    numSim = 20
+    # data = data_reader(time_start= 0, time_end= 364)
+    # zew = data.zew()/100
+    # ip = data.industrial_production()
+    # # Account for smaller time Series
+    # zew = zew[0:len(ip)]
+    # zew_fw = zew[1:]
+    # numSim = 20
 
     # from statsmodels.tsa.stattools import adfuller
 
@@ -1001,18 +1020,18 @@ if __name__ == '__main__':
 #########################################################
 # Model with industrial production and laged time series
 ########################################################
-    init_guess = ( 0.03229717,  0.05432381,  0.28461138,  7.24074707, -6.5524558,   3.794075)
-    for i in range(int(numSim/20)):
-        jobs = []
-        mC_4 = []
-        for proc in range(1):
-            # Simulate the time series:      
-            mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
-            p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
-            jobs.append(p)
-            p.start()
-        for proc in jobs:
-            proc.join()
+    # init_guess = ( 0.03229717,  0.05432381,  0.28461138,  7.24074707, -6.5524558,   3.794075)
+    # for i in range(int(numSim/20)):
+    #     jobs = []
+    #     mC_4 = []
+    #     for proc in range(1):
+    #         # Simulate the time series:      
+    #         mC_4.append(MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True))
+    #         p = mp.Process(target=mC_4[proc].run, args= (tuple(init_guess),))
+    #         jobs.append(p)
+    #         p.start()
+    #     for proc in jobs:
+    #         proc.join()
 # ########################################################
 # # Model with laged time series
 # #########################################################
@@ -1031,7 +1050,7 @@ if __name__ == '__main__':
     #         proc.join()
 
 # ########################################################
-# # Model with laged time series and N = 22
+# # Model with laged time series and N = 20
 # #########################################################
 
     # init_guess = (0.19489732, 0.10141, 0.9925405, 0.5132)
@@ -1049,7 +1068,7 @@ if __name__ == '__main__':
     #         proc.join()
 
 ########################################################
-#Model with industrial production and laged time series and N =22
+#Model with industrial production and laged time series and N =20
 #######################################################
 
     # init_guess = (0.2,0.0,0.79, -2.5, 5)
@@ -1075,31 +1094,34 @@ if __name__ == '__main__':
 #                   Model 3
 # #################################################################    
     
-#     from data_reader import data_reader
-#     from scipy.stats import skew, kurtosis, norm
-#     zew_data = []
-#     zew_fw_data = []
-#     ip_data = []
+    from data_reader import data_reader
+    from scipy.stats import skew, kurtosis, norm
+    zew_data = []
+    zew_fw_data = []
+    ip_data = []
 
-#     real_statistics = []
+    real_statistics = []
+    i = 0
 
-#     for i in range(0,25):
-#         data = data_reader(time_start= 0 + (12*i), time_end= 60 + (12*i))
-#         zew = data.zew()/100
-#         ip = data.industrial_production()
-#         # # Account for smaller time Series
-#         zew = zew[0:len(ip)]
-#         zew_fw = zew[1:]
-#         mean = zew_fw.mean()
-#         std = zew_fw.std()
-#         ske = skew(np.array(zew_fw), axis = 0, bias = True)
-#         kurt = kurtosis(zew_fw,axis = 0, bias = True)  
-#         rel_dev = (mean**2)/zew_fw.var()     
-#         zew_data.append(zew)
-#         zew_fw_data.append(zew_fw)
-#         ip_data.append(ip)   
-#         real_statistics.append((mean, std,ske, kurt, rel_dev))
-#         mC_3 = MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True)
-#         mC_3.run((9.047996351698969764e-02,1.495954758529130790e-01,8.745193519211922339e-01,3.187844863450407118e+01,-5.184832000945729824e+00,2.125734982220825575e+00))
+    while (175 + (12*i)) < 364:
+        data = data_reader(time_start= 0 + (12*i), time_end= 175 + (12*i))
+        zew = data.zew()/100
+        ip = data.industrial_production()
+        # # Account for smaller time Series
+        zew = zew[0:len(ip)]
+        zew_fw = zew[1:]
+        mean = zew_fw.mean()
+        std = zew_fw.std()
+        ske = skew(np.array(zew_fw), axis = 0, bias = True)
+        kurt = kurtosis(zew_fw,axis = 0, bias = True)  
+        rel_dev = (mean**2)/zew_fw.var()     
+        zew_data.append(zew)
+        zew_fw_data.append(zew_fw)
+        ip_data.append(ip)   
+        real_statistics.append((mean, std,ske, kurt, rel_dev))
+        mC_3 = MonteCarlo(numSim= 5, model = OpinionFormation , estimation= estimation.Estimation(time_series= zew_fw, y = ip, x_l= zew, multiprocess= False,model_type=3), real_data= True)
+        mC_3.run((9.576066757605214419e-02,1.211939978590698686e-01,8.622789931215698589e-01,3.187894261347632963e+01,-5.188999777677983261e+00,2.148641064109538146e+00))
+        i = i+1
 
-# np.savetxt("Estimation/real_statistics_rolling.csv", real_statistics, delimiter=",",fmt ='% s')
+    np.savetxt("Estimation/real_statistics_rolling.csv", real_statistics, delimiter=",",fmt ='% s')
+

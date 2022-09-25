@@ -98,23 +98,9 @@ class OpinionFormation():
             return (2 * self.nu/self.N)*(np.cosh(self.alpha0 + self.alpha1 * x + self.alpha3*(x - x_l)) - x * np.sinh(self.alpha0 + self.alpha1 * x  + self.alpha3*(x - x_l))) 
         
     # Define the functions for the initial distribution 
-
-    def normalDistributionCDF(self, x: float) -> float: 
-        """The normalDistributionCDF function takes a float x as input and returns the cumulative distribution function \
-            of the normal distribution
-        Args:
-            x (float): Represent the value of x for which we want to calculate the density minus the mean and divided by the standard deviation times sqrt of two
-        Returns:
-            float: The value of the cdf at x  
-        """
-        return (1.0 + erf(x)) / 2.0
-    
-    def truncatednormalDistributionCDF(self, eps:float, alpha: float, beta:float) -> float: 
-        
-        return ((self.normalDistributionCDF(eps/np.sqrt(2)) - self.normalDistributionCDF(alpha/np.sqrt(2)))/(self.normalDistributionCDF(beta/np.sqrt(2))-self.normalDistributionCDF(alpha/np.sqrt(2))))
     
     def normalDistributionPDF(self,mean: float, sd:float, x:float) -> float: 
-        
+
         return (1/(sd*np.sqrt(2*np.pi))) * np.exp((-1/2)* ((x-mean)/sd)**2)  
         
     def initialDistribution(self, x_initial:float, y = 0, x_l = 0) -> np.array:
@@ -253,7 +239,6 @@ class OpinionFormation():
         if fast_comp == True: 
             area = np.zeros(len(self.t))
             for t in range(1,len(self.t)):
-                #self.prob[:,t-1]/=simps(self.prob[:,t-1] , self.x)
                 self.prob[:,t]  = spsolve(lhs, rhs @ (self.prob[:,t-1]))
             return self.prob[:,-1]
         else:
@@ -275,8 +260,9 @@ class OpinionFormation():
                         raise WrongDensityValueError(area[t-1], t-1)
                     else: 
                         self.prob[:,t]  = spsolve(lhs, rhs @ self.prob[:,t-1])
-                        #plt.plot(self.prob[:,t-1])
-               # plt.show()            
+                # uncoment for fancy pictures ;)
+                        plt.plot(self.prob[:,t-1])
+                plt.show()            
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 

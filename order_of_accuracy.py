@@ -134,7 +134,7 @@ np.savetxt("Validation/order_acc_h_set_2.csv", q, delimiter=",",fmt ='% s')
 print("The order of accuracy rows:T, columns (-1,1)\n" + str(q))
 ############################################################################################################################
 #
-# x(0) = 0.9
+# x(0) = -0.8
 #
 #### Check order of accuracy in time without dirft ####
 quotient = []

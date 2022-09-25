@@ -25,6 +25,7 @@ class data_reader():
         zew = zew[self.time_start:self.time_end]
         
         return zew
+
     
     def industrial_production(self, start_period = "1991-12-01", hp_filter = True):
         
@@ -35,7 +36,7 @@ class data_reader():
         ip = np.log(ip[self.time_start:self.time_end])
         
         if hp_filter == True: 
-            ip_cyle,_ = hpfilter(ip, 14400)
+            ip_cyle,_ = hpfilter(ip, 140400)
             return ip_cyle
         else: 
             return ip

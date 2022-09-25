@@ -82,46 +82,25 @@ def get_statistics(sim_model:object, numSim:int, init_value:float, time_length:i
 ################################################################################################################################################
 #  DATA SET 1 (20.12.1991:18.07.2006)
 ################################################################################################################################################
-
-###########################################################
-#           Real Data                                     #
-###########################################################
 data = data_reader(time_start= 0, time_end= 175)
 zew = data.zew()/100
 zew_fw = zew[1:]
 ip = data.industrial_production()
-real_statistics = []
-
-zew_mean = zew.mean(axis = 0)
-
-zew_mean =  zew.mean()
-real_statistics.append(zew_mean)
-
-zew_std = zew.std()
-real_statistics.append(zew_std)
-
-zew_skw = skew(zew, axis=0, bias=True)
-real_statistics.append(zew_skw)
-
-zew_kurt = kurtosis(zew, axis = 0, bias = True)
-real_statistics.append(zew_kurt)
-
-zew_rel_dev = (zew_mean**2)/zew.var()
-real_statistics.append(zew_rel_dev)
-
-np.savetxt("Estimation/real_statistics_set1.csv", real_statistics, delimiter=",",fmt ='% s')
 
 # ############################################################
 # #                       Model 0                            #
 # ############################################################
-# param = [7.345487901182219392e-01,1.210034441730688075e-02,1.192063076939320343e+00]
-# sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.01, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
-# numSim = 1000
 
-# statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
-# np.savetxt("Estimation/Model_0/sim_statistics_model_0_set1.csv", statistics, delimiter=",",fmt ='% s')
-# simu_0 = np.asarray(simu_0)
-# np.savetxt("Estimation/Model_0/sim_0_set1.csv", simu_0, delimiter=",",fmt ='% s')
+
+
+param = [7.775083419531574336e-01,8.667584627314843179e-03,1.192181844844426131e+00]
+sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.0025, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
+numSim = 1000
+
+statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
+np.savetxt("Estimation/Model_0/sim_statistics_model_0_set1.csv", statistics, delimiter=",",fmt ='% s')
+simu_0 = np.asarray(simu_0)
+np.savetxt("Estimation/Model_0/sim_0_set1.csv", simu_0, delimiter=",",fmt ='% s')
 
 # ############################################################
 # #                       Model 1                            #
@@ -185,58 +164,35 @@ np.savetxt("Estimation/real_statistics_set1.csv", real_statistics, delimiter=","
 # # #                       Model 6                           #
 # # ############################################################
 
-param = [6.331940450689063637e-02,2.026316488839882413e-01,7.396393454904490738e-01,-7.328853008299797800e+00,2.764240234051995593e+00]
-sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
-numSim = 1000
-statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
-np.savetxt("Estimation/Model_6/sim_statistics_model_6_set1.csv", statistics, delimiter=",",fmt ='% s')
-simu_5 = np.asarray(simu_6)
-np.savetxt("Estimation/Model_6/sim_6_set1.csv", simu_6, delimiter=",",fmt ='% s')
+# param = [6.331940450689063637e-02,2.026316488839882413e-01,7.396393454904490738e-01,-7.328853008299797800e+00,2.764240234051995593e+00]
+# sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
+# numSim = 1000
+# statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
+# np.savetxt("Estimation/Model_6/sim_statistics_model_6_set1.csv", statistics, delimiter=",",fmt ='% s')
+# simu_5 = np.asarray(simu_6)
+# np.savetxt("Estimation/Model_6/sim_6_set1.csv", simu_6, delimiter=",",fmt ='% s')
 
 # ################################################################################################################################################
 # #  DATA SET 2 (22.08.2006:15.03.2022)
 # ################################################################################################################################################
-
-# ###########################################################
-# #           Real Data                                     #
-# ###########################################################
-data = data_reader(time_start= 176, time_end= -1)
+data = data_reader(time_start= 176, time_end= 364)
 ip = data.industrial_production()
 zew = data.zew()/100
 zew = zew[0:len(ip)]
 zew_fw = zew[1:]
-real_statistics = []
-
-zew_mean = zew.mean(axis = 0)
-
-zew_mean =  zew.mean()
-real_statistics.append(zew_mean)
-
-zew_std = zew.std()
-real_statistics.append(zew_std)
-
-zew_skw = skew(zew, axis=0, bias=True)
-real_statistics.append(zew_skw)
-
-zew_kurt = kurtosis(zew, axis = 0, bias = True)
-real_statistics.append(zew_kurt)
-
-zew_rel_dev = (zew_mean**2)/zew.var()
-real_statistics.append(zew_rel_dev)
-
-np.savetxt("Estimation/real_statistics_set2.csv", real_statistics, delimiter=",",fmt ='% s')
 
 # ############################################################
 # #                       Model 0                            #
 # ############################################################
-# param = [1.490003417794093732e+00,5.165238326396261528e-03,1.085673714369213005e+00]
-# sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.01, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
-# numSim = 1000
-# statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
-# np.savetxt("Estimation/Model_0/sim_statistics_model_0_set2.csv", statistics, delimiter=",",fmt ='% s')
-# simu_0 = np.asarray(simu_0)
-# np.savetxt("Estimation/Model_0/sim_0_set2.csv", simu_0, delimiter=",",fmt ='% s')
-# ############################################################
+
+param = [1.630477137229142004e+00,3.569004261698033656e-03,1.085524223609867445e+00]
+sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.0025, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
+numSim = 1000
+statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
+np.savetxt("Estimation/Model_0/sim_statistics_model_0_set2.csv", statistics, delimiter=",",fmt ='% s')
+simu_0 = np.asarray(simu_0)
+np.savetxt("Estimation/Model_0/sim_0_set2.csv", simu_0, delimiter=",",fmt ='% s')
+############################################################
 # #                       Model 1                            #
 # ############################################################
 # param = [2.419691842964410422e-01,2.865422704207985782e-02,9.168349398705467612e-01,2.244431800720106907e+01]
@@ -298,57 +254,34 @@ np.savetxt("Estimation/real_statistics_set2.csv", real_statistics, delimiter=","
 # # #                       Model 6                           #
 # # ############################################################
 
-param = [1.758980936653743443e-01,5.425385194302516367e-02,6.907932872040989380e-01,-1.955077894801849236e+00,5.575924232595009800e-01]
-sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
-numSim = 1000
-statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
-np.savetxt("Estimation/Model_6/sim_statistics_model_6_set2.csv", statistics, delimiter=",",fmt ='% s')
-simu_5 = np.asarray(simu_6)
-np.savetxt("Estimation/Model_6/sim_6_set2.csv", simu_6, delimiter=",",fmt ='% s')
+# param = [1.758980936653743443e-01,5.425385194302516367e-02,6.907932872040989380e-01,-1.955077894801849236e+00,5.575924232595009800e-01]
+# sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
+# numSim = 1000
+# statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
+# np.savetxt("Estimation/Model_6/sim_statistics_model_6_set2.csv", statistics, delimiter=",",fmt ='% s')
+# simu_5 = np.asarray(simu_6)
+# np.savetxt("Estimation/Model_6/sim_6_set2.csv", simu_6, delimiter=",",fmt ='% s')
 
 # ################################################################################################################################################
 # #  DATA SET 3 (20.12.1991:15.03.2022)
 # ################################################################################################################################################
-
-###########################################################
-#           Real Data                                     #
-###########################################################
-data = data_reader(time_start= 0, time_end= -1)
+data = data_reader(time_start= 0, time_end= 364)
 ip = data.industrial_production()
 zew = data.zew()/100
 zew = zew[0:len(ip)]
 zew_fw = zew[1:]
 real_statistics = []
 
-zew_mean = zew.mean(axis = 0)
-
-zew_mean =  zew.mean()
-real_statistics.append(zew_mean)
-
-zew_std = zew.std()
-real_statistics.append(zew_std)
-
-zew_skw = skew(zew, axis=0, bias=True)
-real_statistics.append(zew_skw)
-
-zew_kurt = kurtosis(zew, axis = 0, bias = True)
-real_statistics.append(zew_kurt)
-
-zew_rel_dev = (zew_mean**2)/zew.var()
-real_statistics.append(zew_rel_dev)
-
-np.savetxt("Estimation/real_statistics_set3.csv", real_statistics, delimiter=",",fmt ='% s')
-
 ############################################################
 #                       Model 0                            #
 ############################################################
-# param = [9.669776636390868818e-01,9.053076346303937094e-03,1.150891765214812734e+00]
-# sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.01, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
-# numSim = 1000
-# statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
-# np.savetxt("Estimation/Model_0/sim_statistics_model_0_set3.csv", statistics, delimiter=",",fmt ='% s')
-# simu_0 = np.asarray(simu_0)
-# np.savetxt("Estimation/Model_0/sim_0_set3.csv", simu_0, delimiter=",",fmt ='% s')
+param = [1.046509731177973856e+00,6.442068641315534978e-03,1.150894328260032129e+00]
+sim_0 = sim.Simulation(N = 175, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2= None, alpha3= None, deltax= 0.0025, deltat= 1/100, model_type= 0, seed = np.random.random_integers(0,600))
+numSim = 1000
+statistics,simu_0 = get_statistics(sim_0, numSim, zew[0], len(zew))
+np.savetxt("Estimation/Model_0/sim_statistics_model_0_set3.csv", statistics, delimiter=",",fmt ='% s')
+simu_0 = np.asarray(simu_0)
+np.savetxt("Estimation/Model_0/sim_0_set3.csv", simu_0, delimiter=",",fmt ='% s')
 ############################################################
 #                       Model 1                            #
 ############################################################
@@ -413,11 +346,11 @@ np.savetxt("Estimation/real_statistics_set3.csv", real_statistics, delimiter=","
 # # #                       Model 6                           #
 # # ############################################################
 
-param = [4.931107104610878145e-02,1.374961485430753472e-01,7.009806378582285058e-01,-2.019033674796051336e+00,4.821084414937820029e+00]
+# param = [4.931107104610878145e-02,1.374961485430753472e-01,7.009806378582285058e-01,-2.019033674796051336e+00,4.821084414937820029e+00]
 
-sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
-numSim = 1000
-statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
-np.savetxt("Estimation/Model_6/sim_statistics_model_6_set3.csv", statistics, delimiter=",",fmt ='% s')
-simu_5 = np.asarray(simu_6)
-np.savetxt("Estimation/Model_6/sim_6_set3.csv", simu_6, delimiter=",",fmt ='% s')
+# sim_6 = sim.Simulation(N = 22, T = 1, nu = param[0], alpha0= param[1], alpha1= param[2], alpha2=param[3], alpha3=param[4], deltax= 0.01, deltat= 1/100, model_type= 6, seed = np.random.random_integers(0,600), y = ip) 
+# numSim = 1000
+# statistics, simu_6 = get_statistics(sim_6, numSim, zew[0], len(zew))
+# np.savetxt("Estimation/Model_6/sim_statistics_model_6_set3.csv", statistics, delimiter=",",fmt ='% s')
+# simu_5 = np.asarray(simu_6)
+# np.savetxt("Estimation/Model_6/sim_6_set3.csv", simu_6, delimiter=",",fmt ='% s')
