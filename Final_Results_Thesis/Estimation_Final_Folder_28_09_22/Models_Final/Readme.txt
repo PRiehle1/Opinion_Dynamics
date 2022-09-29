@@ -1,8 +1,8 @@
-This folder contains the estimates from the Estimation.
+This folder contains the estimates for the Models.
 
 Each folder consists of: the estimators for the specific model, the LogL, the initial estimates and two variance calculation. In the thesis var_opg is schown
 
-Each file should be written as follows:
+Each file is to be read as follows:
 Column:
 	Column 1: Estimator for nu
 	Column 2: Estimator for alpha 0
