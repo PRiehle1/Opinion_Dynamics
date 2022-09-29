@@ -1,3 +1,12 @@
+"""
+Author: Phillip Riehle
+Version_Date: 28.09.2022
+
+The model class with two Crank Nicoloson schemes. Defines the Drift and Diffusion function and the Crank Nicolson Scheme. 
+
+
+"""
+
 import numpy as np 
 from math import *
 from errors import * 
@@ -100,6 +109,17 @@ class OpinionFormation():
     # Define the functions for the initial distribution 
     
     def normalDistributionPDF(self,mean: float, sd:float, x:float) -> float: 
+        """
+        It calculates the probability density function of a normal distribution.
+        
+        :param mean: the mean of the normal distribution
+        :type mean: float
+        :param sd: standard deviation
+        :type sd: float
+        :param x: the value of the random variable
+        :type x: float
+        :return: The probability density function of a normal distribution.
+        """
 
         return (1/(sd*np.sqrt(2*np.pi))) * np.exp((-1/2)* ((x-mean)/sd)**2)  
         
@@ -261,8 +281,8 @@ class OpinionFormation():
                     else: 
                         self.prob[:,t]  = spsolve(lhs, rhs @ self.prob[:,t-1])
                 # uncoment for fancy pictures ;)
-                        plt.plot(self.prob[:,t-1])
-                plt.show()            
+                        #plt.plot(self.prob[:,t-1])
+                #plt.show()            
                 if converged == False:         
                     return area, self.prob, self.prob[:, -1]
                 else: 

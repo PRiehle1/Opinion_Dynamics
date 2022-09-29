@@ -4,19 +4,15 @@ import time
 import numpy as np
 from errors import UncompleteLikelihoodError
 from model import OpinionFormation
-from scipy.integrate import simps
-from scipy import interpolate
-from scipy.optimize import minimize, dual_annealing, differential_evolution
+from scipy.optimize import minimize
 
 import multiprocessing as mp
 
 
-
-# Define the class 
-
+# The class Estimation is a class that contains the functions that are used to estimate the parameters
+# of the model.
 class Estimation():
     
-    ''' Class for the Estimation of the Social Model'''
     def __init__(self, time_series: np.array,multiprocess : bool, model_type: int, y = 0, x_l = 0) -> None: 
         self.time_series = time_series 
         self.multiprocess = multiprocess
@@ -24,7 +20,6 @@ class Estimation():
         self.y = y
         self.x_l = x_l
         
-
     def logL(self, guess:tuple) -> np.array:
         """
         The logL function takes a guess for the parameters and returns the log likelihood of that guess.
@@ -76,7 +71,6 @@ class Estimation():
         
         # Initialize the log(function(X, Theta))
         logf = []
-        #####################################################################################################################################
         start = time.time()
         for elem in range(len(time_series)-1):
             #Solve the Fokker Plank Equation: 
@@ -99,9 +93,7 @@ class Estimation():
                         if pdf[x] == 0:
                             print("PDF at x is zero")
                         logf.append(np.log((pdf[x])))
-
-
-#########################################################################################################################################################           
+    
         logL = np.sum(logf)
 
         print("The Log Likelihood is: " + str(logL) + "and" + "The Minimization_Guess was: " + str(guess)) 
@@ -126,6 +118,21 @@ class Estimation():
         return nlogL 
 
     def outer_product_gradient(self, guess: tuple, eps: float) -> np.array:
+        """
+        The function calculates the outer product of the gradient of the log likelihood function for a
+        given set of parameters. 
+        
+        The function takes as input the guess of the parameters and the epsilon value. 
+        
+        The function returns the outer product of the gradient of the log likelihood function for a
+        given set of parameters. 
+        
+        :param guess: tuple of the parameters to be estimated
+        :type guess: tuple
+        :param eps: float
+        :type eps: float
+        :return: The outer product of the gradient.
+        """
 
         # First Step: Caluclation of the log likelihood at xj for given theta 
 
@@ -258,12 +265,9 @@ class Estimation():
                             if pdf_r[x_r] == 0:
                                 print("PDF at x is zero")
                             logf_r=np.log((pdf_r[x_r]))   
-
                 g[param] = (logf_r - logf)/(eps)
                 guess_r = guess_in.copy()
-
             product.append(g @ g.T) 
-
         for elem in range(len(product)):
             if elem == 0: 
                 sum = product[elem]
@@ -272,21 +276,20 @@ class Estimation():
         opg = np.linalg.inv(1/len(product) * sum)
         return opg    
         
-#########################################################################################################################################################################################
-#                                              L-BFGS-B Optimization
-#########################################################################################################################################################################################
     def solver_L_BFGS_B(self, initial_guess: list) -> tuple:
         """
-        The solver_Nelder_Mead function takes in an initial guess for the parameters and returns the 
-        best fit parameters. The function uses a Nelder Mead minimization algorithm to minimize 
-        the negative log likelihood function. 
-
-        Args:
-            initial_guess (list): Initialize the minimization process
-
-        Returns:
-            tuple: he optimized parameters, the log likelihood value and the number of iterations required to reach convergence
+        The solver_L_BFGS_B function takes in an initial guess for the parameters and returns the best
+        fit parameters. The function uses a L-BFGS-B minimization algorithm to minimize the negative log
+        likelihood function. 
+        
+        The function is called by the following function:
+        
+        :param initial_guess: list
+        :type initial_guess: list
+        :return: The optimized parameters, the log likelihood value and the number of iterations
+        required to reach convergence
         """
+
         # Unpack the inital guess
         if self.model_type == 0:
             #T = initial_guess
@@ -340,125 +343,6 @@ class Estimation():
 
         return res
     
-#########################################################################################################################################################################################
-#                                               BHHHH Maximisation
-#########################################################################################################################################################################################
-
-
-    def solver_bhhh(self, initial_guess: tuple, tolerance_level: float, max_iter:int) -> np.array:
-        """
-        The bhhh function takes in the initial guess, tolerance level and maximum number of iterations as input. 
-        It returns the final estimate after performing bhhh method for a given number of iterations.
-
-        Args:
-            initial_guess (tuple): Set the initial value of beta
-            tolerance_level (float): Determine the convergence of the algorithm
-            max_iter (int): Set the maximum number of iterations
-
-        Returns:
-            np.array: The final estimated
-           
-        """
-        ##########################
-        ### Initial Values 
-        ###########################
-
-        # Calculate the initial Gradient
-        g_in = self.gradient(np.concatenate(initial_guess).ravel(), eps = 0.01)
-        
-        # Calculate the initial Variance Covariance Matrix
-        r_t_in = self.cov_matrix(g_in)
-        
-        # Check if the Variance Covariance Matrix is singular
-        if (np.linalg.det(r_t_in)):
-            print("Covariance Matrix is  not singular ")
-            pass
-        else: 
-            print("Covariance Matrix is singular ")
-            r_t_in = np.array([[1000, 0, 0], [0, 1000, 0], [0, 0, 1000]]) # Reshape according to number of
-        
-        # Calculate the initial direction vector
-        direc_in = np.dot(np.linalg.inv(r_t_in),g_in).reshape(3,) # Change according to the number of parameters 
-        
-        lamb =  1
-        delta = 0.25
-
-        # Initial Beta         
-        beta_in= np.concatenate(initial_guess).ravel()
-
-        for it in range(max_iter):
-            print("Number of Iterations:" + str(it))
-            if it == 0:
-                # Calculate the Lambda
-                # Helper Function
-                def calcnu(lamb):
-                    logL =  self.logL(list(beta_in))
-                    nu = float((self.logL(list((beta_in + lamb * direc_in))) - logL)) / (lamb * float(np.dot(direc_in, g_in)))
-                    return nu
-        
-                
-                if calcnu(lamb) >= delta:
-                    lamb = 1
-                    print("Lambda is:   " + str(lamb))
-                else:
-                    while delta >= calcnu(lamb) or calcnu(lamb) >=1-delta:
-                        lamb *=0.8
-                        if lamb <= 0.09:
-                            pass
-                    print("Lambda is:   " + str(lamb))
-                
-                beta = beta_in + lamb*direc_in
-                print("The actual Estimate is:   " +str(beta))
-            else:
-                
-                # Calculate the Gradient
-                g = self.gradient(tuple(beta), eps = 0.01)
-                
-                # Calculate the initial Variance Covariance Matrix
-                r_t = self.cov_matrix(g)
-                
-                # Check if the Variance Covariance Matrix is singular
-                if (np.linalg.det(r_t)):
-                    print("Covariance Matrix is  not singular ")
-                    pass
-                else: 
-                    print("Covariance Matrix is singular ")
-                    r_t = np.array([[10000, 0, 0], [0, 10000, 0], [0, 0, 1000]])
-                
-                # Calculate the initial direction vector
-                direc = np.dot(np.linalg.inv(r_t),g).reshape(3,)
-
-                # Check for convergence
-                dum = np.zeros(len(direc))
-                for elem in range(len(direc)):
-                    dum[elem] = np.abs(direc[elem])/ max((1, np.abs(beta[elem])))
-        
-                if max(dum) < tolerance_level:
-                    print(" Final Estimate foud" + str(beta))
-                    return beta 
-
-                # Calculate the Lambda
-                # Helper Function
-                def calcnu(lamb):
-                    logL =  self.logL(list(beta))
-                    nu = float((self.logL(list((beta + lamb * direc))) - logL)) / (lamb * float(np.dot(direc, g)))
-                    return nu
-        
-                
-                if calcnu(lamb) >= delta:
-                    lamb = 1
-                    print("Lambda is:   " + str(lamb))
-                else:
-                    while delta >= calcnu(lamb) or calcnu(lamb) >=1-delta:
-                        lamb *=0.8
-                        if lamb <= 0.09:
-                            pass
-                    print("Lambda is:   " + str(lamb))
-
-                beta = beta + lamb*direc
-                print("The actual Estimate is:   " +str(beta))
-                
-
 
 
 
