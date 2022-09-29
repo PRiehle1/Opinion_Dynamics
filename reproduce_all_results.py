@@ -27,7 +27,7 @@ This file explains how to obtain the results:
 5: Figures 
 
 To get the estimators for the Monte Carlo estimation and the estimators for the samples of real data: run run_estimation.py
-(Cannot be called from this file due to multiprocessing; Thus, it would reload the file again and again and dont actually start. 
+(Cannot be called from this file due to multiprocessing; Thus, it would reload the file again and again and dont actually start the estimation. 
 
 """
 #### Insert number from the Table above ###

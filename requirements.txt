@@ -1,6 +1,10 @@
+fredapi==0.5.0
 matplotlib==3.5.1
 numpy==1.22.2
 pandas==1.4.0
+rpy2==3.5.4
 scipy==1.8.0
+statsmodels==0.13.2
 sympy==1.10.1
 tqdm==4.64.0
+wget==3.2
